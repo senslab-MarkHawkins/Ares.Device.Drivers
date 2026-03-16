@@ -1,0 +1,51 @@
+@inherits ReactiveUI.Blazor.ReactiveComponentBase<Tc0304UnitControlViewModel>
+
+<div class="tc0304-shell">
+  <div class="tc0304-header">
+    <div>
+      <div class="tc0304-title">@ViewModel!.DeviceName</div>
+      <div class="tc0304-subtitle">Mode: @ViewModel!.CurrentState.Mode</div>
+    </div>
+    <div class="tc0304-actions">
+      <RadzenButton Text="Refresh" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@(() => ViewModel.RefreshCommand.Execute().Subscribe())" />
+      <RadzenButton Text="Toggle Units" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@(() => ViewModel.ToggleTemperatureUnitCommand.Execute().Subscribe())" />
+      <RadzenButton Text="Hold" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Click="@(() => ViewModel.HoldCommand.Execute().Subscribe())" />
+    </div>
+  </div>
+
+  @if(ViewModel!.HasValidData)
+  {
+    <div class="tc0304-status">
+      <RadzenBadge BadgeStyle="@(ViewModel.CurrentState.BatteryLow ? BadgeStyle.Warning : BadgeStyle.Success)" Text="@(ViewModel.CurrentState.BatteryLow ? "Battery Low" : "Battery OK")" />
+      <RadzenBadge BadgeStyle="@(ViewModel.CurrentState.Hold ? BadgeStyle.Info : BadgeStyle.Light)" Text="@(ViewModel.CurrentState.Hold ? "Hold Active" : "Live")" />
+      <RadzenBadge BadgeStyle="BadgeStyle.Dark" Text="@(ViewModel.CurrentState.Celsius ? "Celsius" : "Fahrenheit")" />
+    </div>
+
+    <div class="tc0304-grid">
+      <div>
+        <div class="name-display">@ViewModel.CurrentState.Probe1Name</div>
+        <div class="temperature-display">@FormatTemperature(ViewModel.CurrentState.T1Probe)</div>
+        <div class="name-display">@ViewModel.CurrentState.Probe3Name</div>
+        <div class="temperature-display">@FormatTemperature(ViewModel.CurrentState.T3Probe)</div>
+      </div>
+      <div>
+        <div class="name-display">@ViewModel.CurrentState.Probe2Name</div>
+        <div class="temperature-display">@FormatTemperature(ViewModel.CurrentState.T2Probe)</div>
+        <div class="name-display">@ViewModel.CurrentState.Probe4Name</div>
+        <div class="temperature-display">@FormatTemperature(ViewModel.CurrentState.T4Probe)</div>
+      </div>
+    </div>
+  }
+  else
+  {
+    <div class="tc0304-loading">
+      <RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Small" />
+      <span>Waiting for logger state</span>
+    </div>
+  }
+</div>
+
+@code {
+  private static string FormatTemperature(double? value)
+    => value.HasValue ? $"{value.Value:F1} C" : "--";
+}

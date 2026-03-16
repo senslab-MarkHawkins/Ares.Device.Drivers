@@ -1,0 +1,34 @@
+# ARES Device Driver Manifest
+# Target: TC0304 Remastered
+
+device_type_name: "TC0304 Datalogger Thermometer"
+driver_id: "tc0304_remastered_v1"
+connection_type: "Serial"
+assembly_name: "TC0304Remastered.dll"
+
+serial_settings:
+  requires_unit_id: false
+  variable_baud_rate: false
+  allowed_baud_rates: [9600]
+  default_baud_rate: 9600
+
+settings:
+  - key: "Probe1Name"
+    display_name: "Probe 1 Name"
+    type: "string"
+    description: "Display label for the first probe."
+
+  - key: "Probe2Name"
+    display_name: "Probe 2 Name"
+    type: "string"
+    description: "Display label for the second probe."
+
+  - key: "Probe3Name"
+    display_name: "Probe 3 Name"
+    type: "string"
+    description: "Display label for the third probe."
+
+  - key: "Probe4Name"
+    display_name: "Probe 4 Name"
+    type: "string"
+    description: "Display label for the fourth probe."
