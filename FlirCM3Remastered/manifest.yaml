@@ -1,0 +1,64 @@
+# ARES Device Driver Manifest
+# Target: Flir CM3 Remastered
+
+device_type_name: "Flir CM3 Camera"
+driver_id: "flir_cm3_remastered_v1"
+version: "1.0.0"
+connection_type: "USB"
+assembly_name: "FlirCM3Remastered.dll"
+
+settings:
+  - key: "ExposureCompensation"
+    display_name: "Exposure Compensation"
+    type: "number"
+    description: "Stored for migration compatibility; currently not applied to the device."
+
+  - key: "ExposureTime"
+    display_name: "Exposure Time"
+    type: "number"
+    description: "Camera exposure time in microseconds."
+
+  - key: "Gain"
+    display_name: "Gain"
+    type: "number"
+    description: "Camera gain."
+
+  - key: "Gamma"
+    display_name: "Gamma"
+    type: "number"
+    description: "Stored for migration compatibility; currently not applied to the device."
+
+  - key: "BlackLevel"
+    display_name: "Black Level"
+    type: "number"
+    description: "Camera black level."
+
+  - key: "RedBalance"
+    display_name: "Red Balance"
+    type: "number"
+    description: "Red white balance ratio."
+
+  - key: "BlueBalance"
+    display_name: "Blue Balance"
+    type: "number"
+    description: "Blue white balance ratio."
+
+  - key: "CaptureWidth"
+    display_name: "Capture Width"
+    type: "number"
+    description: "Requested image width."
+
+  - key: "CaptureHeight"
+    display_name: "Capture Height"
+    type: "number"
+    description: "Requested image height."
+
+  - key: "OffsetX"
+    display_name: "Offset X"
+    type: "number"
+    description: "Horizontal sensor offset."
+
+  - key: "OffsetY"
+    display_name: "Offset Y"
+    type: "number"
+    description: "Vertical sensor offset."

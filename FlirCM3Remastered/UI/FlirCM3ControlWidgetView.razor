@@ -1,0 +1,82 @@
+@inherits ReactiveUI.Blazor.ReactiveComponentBase<FlirCM3UnitControlViewModel>
+@inject IJSRuntime JS
+
+<div class="cm3-shell">
+  <div class="cm3-header">
+    <div>
+      <div class="cm3-title">@ViewModel!.DeviceName</div>
+      <div class="cm3-subtitle">Single-frame capture</div>
+    </div>
+  </div>
+
+  <div class="cm3-preview">
+    @if(ViewModel!.DisplayData is not null)
+    {
+      <img class="cm3-image" src="@($"data:image/png;base64,{Convert.ToBase64String(ViewModel.DisplayData)}")" alt="FLIR CM3 preview" />
+    }
+    else
+    {
+      <div class="cm3-empty">Try taking a picture.</div>
+    }
+  </div>
+
+  <div class="cm3-controls">
+    <RadzenButton Text="Capture" ButtonStyle="ButtonStyle.Primary" Click="@CaptureImage" />
+    <RadzenButton Text="Download" ButtonStyle="ButtonStyle.Light" Click="@DownloadImage" Disabled="@(ViewModel.ImageData is null)" />
+    <RadzenButton Text="Set Exposure" ButtonStyle="ButtonStyle.Secondary" Click="@ApplyExposure" />
+  </div>
+
+  @if(!string.IsNullOrWhiteSpace(ViewModel!.LastError))
+  {
+    <div class="cm3-error">@ViewModel.LastError</div>
+  }
+  else if(!string.IsNullOrWhiteSpace(ViewModel.LastCapturePath))
+  {
+    <div class="cm3-path">Saved: @ViewModel.LastCapturePath</div>
+  }
+
+  <RadzenFormField Text="Exposure Time (microseconds)" Variant="Variant.Outlined">
+    <RadzenNumeric TValue="double"
+                   @bind-Value="ViewModel.ExposureTime"
+                   ShowUpDown="false"
+                   Min="10"
+                   Max="30291"
+                   Style="width: 100%;" />
+  </RadzenFormField>
+</div>
+
+@code {
+  private async Task CaptureImage()
+  {
+    try
+    {
+      await ViewModel!.CaptureImage();
+    }
+    catch(Exception ex)
+    {
+      ViewModel!.LastError = ex.Message;
+      Console.Error.WriteLine($"FLIR CM3 capture failed: {ex}");
+    }
+  }
+
+  private async Task ApplyExposure()
+  {
+    try
+    {
+      await ViewModel!.ApplyExposureTime();
+    }
+    catch(Exception ex)
+    {
+      ViewModel!.LastError = ex.Message;
+      Console.Error.WriteLine($"FLIR CM3 exposure update failed: {ex}");
+    }
+  }
+
+  private async Task DownloadImage()
+  {
+    if(ViewModel?.ImageData is null)
+      return;
+
+    await JS.InvokeVoidAsync("downloadByteArray", "AresImage.tif", ViewModel.ImageData);
+  }
+}
