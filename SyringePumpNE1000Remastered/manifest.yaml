@@ -1,0 +1,19 @@
+# ARES Device Driver Manifest
+# Target: Syringe Pump NE1000 Remastered
+
+device_type_name: "Syringe Pump NE1000"
+driver_id: "syringe_pump_ne1000_remastered_v1"
+connection_type: "Serial"
+assembly_name: "SyringePumpNE1000Remastered.dll"
+
+serial_settings:
+  requires_unit_id: false
+  variable_baud_rate: false
+  allowed_baud_rates: [19200]
+  default_baud_rate: 19200
+
+settings:
+  - key: "Address"
+    display_name: "Pump Address"
+    type: "number"
+    description: "Network address used when sending NE1000 serial commands."

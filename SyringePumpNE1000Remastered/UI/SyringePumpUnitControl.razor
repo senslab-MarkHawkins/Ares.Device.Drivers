@@ -1,0 +1,85 @@
+@inherits ReactiveUI.Blazor.ReactiveComponentBase<SyringePumpUnitControlViewModel>
+
+<div class="pump-shell border rounded p-2 d-flex flex-column gap-2">
+  <div class="d-flex justify-content-between align-items-start gap-2">
+    <div>
+      <div class="fw-bold pump-title">@ViewModel!.DeviceName</div>
+      <div class="text-muted pump-subtitle">@ViewModel.StatusText</div>
+      <div class="text-muted small">Firmware: @(string.IsNullOrWhiteSpace(ViewModel.FirmwareVersion) ? "Unknown" : ViewModel.FirmwareVersion)</div>
+    </div>
+    <RadzenButton Text="Refresh" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@ViewModel.Refresh" />
+  </div>
+
+  <div class="row g-1">
+    <div class="col-6">
+      <RadzenCard Variant="Variant.Flat" class="pump-stat-card">
+        <div class="text-muted small">Infused</div>
+        <div class="pump-stat-value">@($"{ViewModel.DispensedVolume:F3} {ViewModel.VolumeUnit}")</div>
+      </RadzenCard>
+    </div>
+    <div class="col-6">
+      <RadzenCard Variant="Variant.Flat" class="pump-stat-card">
+        <div class="text-muted small">Withdrawn</div>
+        <div class="pump-stat-value">@($"{ViewModel.WithdrawnVolume:F3} {ViewModel.VolumeUnit}")</div>
+      </RadzenCard>
+    </div>
+  </div>
+
+  <div class="pump-grid">
+    <div class="pump-pair">
+      <RadzenFormField Text="Address" Variant="Variant.Outlined">
+        <RadzenNumeric TValue="int" @bind-Value="ViewModel.TargetAddress" ShowUpDown="false" Style="width: 100%;" />
+      </RadzenFormField>
+      <RadzenButton Text="Set" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@ViewModel.ApplyAddress" />
+    </div>
+
+    <div class="pump-pair">
+      <RadzenFormField Text="Diameter (mm)" Variant="Variant.Outlined">
+        <RadzenNumeric TValue="double" @bind-Value="ViewModel.TargetDiameterMm" ShowUpDown="false" Step="0.001" Style="width: 100%;" />
+      </RadzenFormField>
+      <RadzenButton Text="Set" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@ViewModel.ApplyDiameter" />
+    </div>
+
+    <div class="pump-pair">
+      <RadzenFormField Text="Phase" Variant="Variant.Outlined">
+        <RadzenNumeric TValue="int" @bind-Value="ViewModel.TargetPhase" ShowUpDown="false" Style="width: 100%;" />
+      </RadzenFormField>
+      <RadzenButton Text="Set" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@ViewModel.ApplyPhase" />
+    </div>
+
+    <div class="pump-pair">
+      <RadzenFormField Text="Function" Variant="Variant.Outlined">
+        <RadzenDropDown TValue="SyringePumpFunction" @bind-Value="ViewModel.TargetFunction" Data="@ViewModel.AvailableFunctions" Style="width: 100%;" />
+      </RadzenFormField>
+      <RadzenButton Text="Set" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@ViewModel.ApplyFunction" />
+    </div>
+
+    <div class="pump-pair">
+      <RadzenFormField Text=@($"Rate ({ViewModel.PhaseRateUnit})") Variant="Variant.Outlined">
+        <RadzenNumeric TValue="double" @bind-Value="ViewModel.TargetRateMlPerMin" ShowUpDown="false" Step="0.001" Style="width: 100%;" />
+      </RadzenFormField>
+      <RadzenButton Text="Set" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@ViewModel.ApplyRate" />
+    </div>
+
+    <div class="pump-pair">
+      <RadzenFormField Text=@($"Volume ({ViewModel.PhaseVolumeUnit})") Variant="Variant.Outlined">
+        <RadzenNumeric TValue="double" @bind-Value="ViewModel.TargetVolumeMl" ShowUpDown="false" Step="0.001" Style="width: 100%;" />
+      </RadzenFormField>
+      <RadzenButton Text="Set" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@ViewModel.ApplyVolume" />
+    </div>
+
+    <div class="pump-pair pump-pair-span">
+      <RadzenFormField Text="Direction" Variant="Variant.Outlined">
+        <RadzenDropDown TValue="Direction" @bind-Value="ViewModel.TargetDirection" Data="@ViewModel.AvailableDirections" Style="width: 100%;" />
+      </RadzenFormField>
+      <RadzenButton Text="Set" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Click="@ViewModel.ApplyDirection" />
+    </div>
+  </div>
+
+  <div class="pump-actions">
+    <RadzenButton Text="Start" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Click="@ViewModel.Start" />
+    <RadzenButton Text="Stop" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Click="@ViewModel.Stop" />
+    <RadzenButton Text="Purge" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@ViewModel.Purge" />
+    <RadzenButton Text="Clear" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@ViewModel.ClearVolume" Disabled="@(ViewModel.PhaseDirection == Direction.UndefinedDirection)" />
+  </div>
+</div>

@@ -2,5 +2,6 @@
   <Project Path="AlicatMFCRemastered/AlicatMFCRemastered.csproj" />
   <Project Path="FlirCM3Remastered/FlirCM3Remastered.csproj" />
   <Project Path="LaserChillerRemastered/LaserChillerRemastered.csproj" />
+  <Project Path="SyringePumpNE1000Remastered/SyringePumpNE1000Remastered.csproj" />
   <Project Path="TC0304Remastered/TC0304Remastered.csproj" />
 </Solution>
