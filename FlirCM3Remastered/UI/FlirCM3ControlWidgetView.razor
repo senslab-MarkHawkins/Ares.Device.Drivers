@@ -1,82 +1,49 @@
 @inherits ReactiveUI.Blazor.ReactiveComponentBase<FlirCM3UnitControlViewModel>
+@inject TooltipService tooltipService
 @inject IJSRuntime JS
 
-<div class="cm3-shell">
-  <div class="cm3-header">
-    <div>
-      <div class="cm3-title">@ViewModel!.DeviceName</div>
-      <div class="cm3-subtitle">Single-frame capture</div>
-    </div>
-  </div>
+<RadzenCard Style="align-items: center; gap: 0.5rem; row-gap: 1rem; width: fit-content">
+  <RadzenRow JustifyContent="JustifyContent.Left">
+    <RadzenStack Orientation="Orientation.Vertical">
+      <RadzenRow>
+        <RadzenText TextStyle="TextStyle.DisplayH6"> @ViewModel!.DeviceName </RadzenText>
+      </RadzenRow>
 
-  <div class="cm3-preview">
-    @if(ViewModel!.DisplayData is not null)
-    {
-      <img class="cm3-image" src="@($"data:image/png;base64,{Convert.ToBase64String(ViewModel.DisplayData)}")" alt="FLIR CM3 preview" />
-    }
-    else
-    {
-      <div class="cm3-empty">Try taking a picture.</div>
-    }
-  </div>
+      <RadzenRow>
+        @if(ViewModel!.DisplayData is not null)
+        {
+          <RadzenImage Path="@($"data:image/png;base64,{Convert.ToBase64String(ViewModel!.DisplayData)}")" AlternateText="Example Camera Image" Style="width: 400px" />
+        }
 
-  <div class="cm3-controls">
-    <RadzenButton Text="Capture" ButtonStyle="ButtonStyle.Primary" Click="@CaptureImage" />
-    <RadzenButton Text="Download" ButtonStyle="ButtonStyle.Light" Click="@DownloadImage" Disabled="@(ViewModel.ImageData is null)" />
-    <RadzenButton Text="Set Exposure" ButtonStyle="ButtonStyle.Secondary" Click="@ApplyExposure" />
-  </div>
+        else
+        {
+          <RadzenText Text="Try taking a picture!" />
+        }
+      </RadzenRow>
 
-  @if(!string.IsNullOrWhiteSpace(ViewModel!.LastError))
-  {
-    <div class="cm3-error">@ViewModel.LastError</div>
-  }
-  else if(!string.IsNullOrWhiteSpace(ViewModel.LastCapturePath))
-  {
-    <div class="cm3-path">Saved: @ViewModel.LastCapturePath</div>
-  }
-
-  <RadzenFormField Text="Exposure Time (microseconds)" Variant="Variant.Outlined">
-    <RadzenNumeric TValue="double"
-                   @bind-Value="ViewModel.ExposureTime"
-                   ShowUpDown="false"
-                   Min="10"
-                   Max="30291"
-                   Style="width: 100%;" />
-  </RadzenFormField>
-</div>
+      <RadzenRow>
+        <RadzenButton Click="@(args => ViewModel!.CaptureImage())" Icon="camera" MouseEnter="@(args => ShowCaptureImageTip(args))" Size="ButtonSize.Large" />
+        <RadzenButton Click="@(args => ExportImage(args))" Icon="download" Size="ButtonSize.Large" MouseEnter="@(args => ShowDownloadPhotoCommandTip(args))" />
+        <RadzenButton Click=@(args => ViewModel!.SetExposureTime()) Icon="exposure" MouseEnter="@(args => ShowSetExposureTip(args))" Size="ButtonSize.Large" />
+        <RadzenFormField Text="Exposure Time (Milliseconds)" Style="width: auto;">
+          <RadzenNumeric ShowUpDown="false" TValue="double" @bind-Value="ViewModel!.ExposureTime" Min="10" Max="30291" Name="ExposureUpDown" />
+        </RadzenFormField>
+      </RadzenRow>
+    </RadzenStack>
+  </RadzenRow>
+</RadzenCard>
 
 @code {
-  private async Task CaptureImage()
-  {
-    try
-    {
-      await ViewModel!.CaptureImage();
-    }
-    catch(Exception ex)
-    {
-      ViewModel!.LastError = ex.Message;
-      Console.Error.WriteLine($"FLIR CM3 capture failed: {ex}");
-    }
-  }
+  void ShowCaptureImageTip(ElementReference elementReference, TooltipOptions? options = null) => tooltipService.Open(elementReference, "Capture Image", options);
+  void ShowSetExposureTip(ElementReference elementReference, TooltipOptions? options = null) => tooltipService.Open(elementReference, "Set Exposure Time", options);
+  void ShowDownloadPhotoCommandTip(ElementReference elementReference, TooltipOptions? options = null) => tooltipService.Open(elementReference, "Download Image", options);
 
-  private async Task ApplyExposure()
+  private async void ExportImage(MouseEventArgs args)
   {
-    try
-    {
-      await ViewModel!.ApplyExposureTime();
-    }
-    catch(Exception ex)
-    {
-      ViewModel!.LastError = ex.Message;
-      Console.Error.WriteLine($"FLIR CM3 exposure update failed: {ex}");
-    }
-  }
-
-  private async Task DownloadImage()
-  {
-    if(ViewModel?.ImageData is null)
+    if(ViewModel!.ImageData is null)
       return;
 
-    await JS.InvokeVoidAsync("downloadByteArray", "AresImage.tif", ViewModel.ImageData);
+    var fileName = "AresImage.tif";
+    await JS.InvokeVoidAsync("downloadByteArray", fileName, ViewModel!.ImageData);
   }
 }

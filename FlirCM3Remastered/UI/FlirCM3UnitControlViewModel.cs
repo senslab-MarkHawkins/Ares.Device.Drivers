@@ -1,6 +1,4 @@
-using Ares.Datamodel;
 using Ares.Toolkit.Device.UI;
-using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 
 namespace FlirCM3Remastered.UI;
@@ -23,6 +21,8 @@ public partial class FlirCM3UnitControlViewModel : DeviceUnitControlViewModel<Fl
     });
   }
 
+  public async Task SetExposureTime() => await Device.SetExposureTime(ExposureTime);
+
   [Reactive]
   public partial double ExposureTime { get; set; }
 
@@ -43,16 +43,18 @@ public partial class FlirCM3UnitControlViewModel : DeviceUnitControlViewModel<Fl
 
   public async Task CaptureImage()
   {
-    LastError = null;
-    ImageData = await Device.CaptureImage(string.Empty);
-    DisplayData = Device.DisplayImageData;
-    LastCapturePath = Device.LatestImagePath;
-  }
+    try
+    {
+      LastError = null;
+      ImageData = await Device.CaptureImage(string.Empty);
+      DisplayData = Device.DisplayImageData;
+      LastCapturePath = Device.LatestImagePath;
+    }
 
-  public async Task ApplyExposureTime()
-  {
-    LastError = null;
-    await Device.SetExposureTime(ExposureTime);
+    catch(Exception)
+    {
+      LastError = $"Failed to capture camera image";
+    }
   }
 
   public ValueTask DisposeAsync()
