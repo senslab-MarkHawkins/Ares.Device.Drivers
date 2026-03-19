@@ -1,7 +1,6 @@
 using Ares.Toolkit.Serial;
 using Ares.Toolkit.Serial.Commands;
 using System.Text;
-using LindbergFurnaceRemastered.Commands.Responses;
 
 namespace LindbergFurnaceRemastered.Commands.Responses.Parsers;
 

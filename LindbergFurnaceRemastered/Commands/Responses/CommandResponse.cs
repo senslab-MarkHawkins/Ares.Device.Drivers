@@ -1,18 +1,17 @@
 using Ares.Toolkit.Serial.Commands;
 
-namespace LindbergFurnaceRemastered.Commands.Responses
+namespace LindbergFurnaceRemastered.Commands.Responses;
+
+public abstract class CommandResponse : SerialResponse
 {
-    public abstract class CommandResponse : SerialResponse
-    {
 
-      public CommandResponse(int address, FunctionCode functionCode)
-      {
-        Address = address;
-        FunctionCode = functionCode;
-      }
+  public CommandResponse(int address, FunctionCode functionCode)
+  {
+    Address = address;
+    FunctionCode = functionCode;
+  }
 
 
-      public int Address { get; }
-      public FunctionCode FunctionCode { get; }
-    }
+  public int Address { get; }
+  public FunctionCode FunctionCode { get; }
 }

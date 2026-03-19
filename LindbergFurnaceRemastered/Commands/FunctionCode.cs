@@ -1,11 +1,10 @@
-namespace LindbergFurnaceRemastered.Commands
+namespace LindbergFurnaceRemastered.Commands;
+
+public enum FunctionCode
 {
-    public enum FunctionCode
-    {
-      Undefined,
-      ReadMultiple = 3,
-      WriteSingle = 6,
-      LoopBackTest = 8,
-      WriteMultiple = 16
-    }
+  Undefined,
+  ReadMultiple = 3,
+  WriteSingle = 6,
+  LoopBackTest = 8,
+  WriteMultiple = 16
 }

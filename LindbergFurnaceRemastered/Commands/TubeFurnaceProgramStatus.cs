@@ -1,10 +1,9 @@
-namespace LindbergFurnaceRemastered.Commands
+namespace LindbergFurnaceRemastered.Commands;
+
+public enum TubeFurnaceProgramStatus
 {
-    public enum TubeFurnaceProgramStatus
-    {
-      Running,
-      Off,
-      Halted,
-      End
-    }
+  Running,
+  Off,
+  Halted,
+  End
 }

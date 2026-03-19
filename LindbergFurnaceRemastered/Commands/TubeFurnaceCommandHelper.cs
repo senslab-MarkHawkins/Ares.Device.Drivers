@@ -1,14 +1,13 @@
-namespace LindbergFurnaceRemastered.Commands
+namespace LindbergFurnaceRemastered.Commands;
+
+public static class TubeFurnaceCommandHelper
 {
-  public static class TubeFurnaceCommandHelper
+  public static byte Lrc(IEnumerable<byte> data)
   {
-    public static byte Lrc(IEnumerable<byte> data)
-    {
-      var sum = (byte)(data.Sum(b => b));
-      var negative = ~sum;
-      var complement = negative + 1;
-      var lrc = (byte)complement;
-      return lrc;
-    }
+    var sum = (byte)(data.Sum(b => b));
+    var negative = ~sum;
+    var complement = negative + 1;
+    var lrc = (byte)complement;
+    return lrc;
   }
 }

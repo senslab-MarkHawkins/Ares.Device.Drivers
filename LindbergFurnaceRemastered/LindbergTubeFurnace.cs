@@ -3,20 +3,15 @@ using Ares.Datamodel.Device;
 using Ares.Datamodel.Extensions;
 using Ares.Datamodel.Factories;
 using Ares.Device;
-using Ares.Toolkit.Serial;
 using LindbergFurnaceRemastered.Commands;
 using LindbergFurnaceRemastered.Commands.Requests;
-using LindbergFurnaceRemastered.Commands.Responses;
 using LindbergFurnaceRemastered.Connection;
 using LindbergFurnaceRemastered.Simulation;
-using System.Diagnostics;
 using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reactive.Threading.Tasks;
-using UnitsNet;
-using UnitsNet.Units;
 
 namespace LindbergFurnaceRemastered;
 
