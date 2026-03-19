@@ -46,11 +46,15 @@ public sealed class LaserChiller : AresDevice, IAsyncDisposable
     Version = "1.0.0";
 
     StateSchema
-      .AddEntry("CurrentTemperature", AresDataType.Number, false, "Current manifold temperature.", "C")
-      .AddEntry("TargetTemperature", AresDataType.Number, false, "Current target temperature.", "C")
+      .AddEntry("CurrentTemperature", AresDataType.Quantity, false, "Current manifold temperature.", new QuantitySchema() { QuantityType = QuantityType.Temperature, BoundsUnit = "c" })
+      .AddEntry("TargetTemperature", AresDataType.Quantity, false, "Current target temperature.", new QuantitySchema() { QuantityType = QuantityType.Temperature, BoundsUnit = "c" })
       .AddEntry("Mode", AresDataType.String, true);
 
-    SettingSchema.AddEntry(TargetTemperatureSettingKey, AresDataType.Number, true, "Persisted target temperature.", "C");
+    SettingSchema.AddEntry(TargetTemperatureSettingKey, 
+      AresDataType.Number, 
+      true, 
+      "Persisted target temperature.", 
+      new QuantitySchema() { QuantityType = QuantityType.Temperature, BoundsUnit = "c" });
 
     PublishState();
   }

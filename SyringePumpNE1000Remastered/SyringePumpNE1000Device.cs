@@ -49,16 +49,16 @@ public sealed class SyringePumpNE1000Device : AresDevice, IAsyncDisposable
     StateSchema
       .AddEntry("FirmwareVersion", AresDataType.String, true)
       .AddEntry("Address", AresDataType.Number, false)
-      .AddEntry("DiameterMm", AresDataType.Number, true, unit: "mm")
+      .AddEntry("DiameterMm", AresDataType.Quantity, true, quantitySchema: new QuantitySchema() { QuantityType = QuantityType.Length, BoundsUnit = "Mm" })
       .AddEntry("Status", AresDataType.String, false)
-      .AddEntry("DispensedVolume", AresDataType.Number, true, unit: "mL")
-      .AddEntry("WithdrawnVolume", AresDataType.Number, true, unit: "mL")
+      .AddEntry("DispensedVolume", AresDataType.Quantity, true, quantitySchema: new QuantitySchema() { QuantityType = QuantityType.Volume, BoundsUnit = "mL"})
+      .AddEntry("WithdrawnVolume", AresDataType.Quantity, true, quantitySchema: new QuantitySchema() { QuantityType = QuantityType.Volume, BoundsUnit = "mL" })
       .AddEntry("VolumeUnit", AresDataType.String, true)
       .AddEntry("PhaseNumber", AresDataType.Number, true)
       .AddEntry("PhaseFunction", AresDataType.String, true)
-      .AddEntry("PhaseRate", AresDataType.Number, true, unit: "mL/min")
+      .AddEntry("PhaseRate", AresDataType.Quantity, true, quantitySchema: new QuantitySchema() { QuantityType = QuantityType.VolumeFlow, BoundsUnit = "mL/min" })
       .AddEntry("PhaseRateUnit", AresDataType.String, true)
-      .AddEntry("PhaseVolume", AresDataType.Number, true, unit: "mL")
+      .AddEntry("PhaseVolume", AresDataType.Quantity, true, quantitySchema: new QuantitySchema() { QuantityType = QuantityType.Volume, BoundsUnit = "mL" })
       .AddEntry("PhaseVolumeUnit", AresDataType.String, true)
       .AddEntry("PhaseDirection", AresDataType.String, true);
 

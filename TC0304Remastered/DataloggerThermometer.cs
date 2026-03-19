@@ -56,10 +56,10 @@ public sealed class DataloggerThermometer : AresDevice, IAsyncDisposable
       .AddEntry("Probe2Name", AresDataType.String, false)
       .AddEntry("Probe3Name", AresDataType.String, false)
       .AddEntry("Probe4Name", AresDataType.String, false)
-      .AddEntry("T1Probe", AresDataType.Number, true, unit: "C")
-      .AddEntry("T2Probe", AresDataType.Number, true, unit: "C")
-      .AddEntry("T3Probe", AresDataType.Number, true, unit: "C")
-      .AddEntry("T4Probe", AresDataType.Number, true, unit: "C");
+      .AddEntry("T1Probe", AresDataType.Quantity, true, quantitySchema: new QuantitySchema() {QuantityType = QuantityType.Temperature, BoundsUnit = "C"})
+      .AddEntry("T2Probe", AresDataType.Quantity, true, quantitySchema: new QuantitySchema() {QuantityType = QuantityType.Temperature, BoundsUnit = "C"})
+      .AddEntry("T3Probe", AresDataType.Quantity, true, quantitySchema: new QuantitySchema() {QuantityType = QuantityType.Temperature, BoundsUnit = "C"})
+      .AddEntry("T4Probe", AresDataType.Quantity, true, quantitySchema: new QuantitySchema() {QuantityType = QuantityType.Temperature, BoundsUnit = "C"});
 
     SettingSchema
       .AddEntry(Probe1NameKey, AresDataType.String, true, "Display label for the first probe.")
