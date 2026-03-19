@@ -55,7 +55,7 @@
   <Target Name="PackageAresDriver" AfterTargets="Build">
     <PropertyGroup>
       <StagingFolder>$(ProjectDir)obj\AresStaging\</StagingFolder>
-      <PackageName>$(ProjectDir)bin\$(Configuration)\$(AssemblyName).ares</PackageName>
+      <PackageName>$(ProjectDir)..\plugins\$(AssemblyName).ares</PackageName>
     </PropertyGroup>
 
     <ItemGroup>
@@ -65,7 +65,8 @@
     <Copy SourceFiles="@(ScopedCssBundle)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" Condition="'@(ScopedCssBundle)' != ''" />
 
     <RemoveDir Directories="$(StagingFolder)" />
-    <MakeDir Directories="$(StagingFolder);$(StagingFolder)bin" />
+    <MakeDir Directories="$(StagingFolder)" />
+    <MakeDir Directories="$(ProjectDir)..\plugins" />
 
     <Copy SourceFiles="manifest.yaml" DestinationFolder="$(StagingFolder)" />
 
@@ -73,9 +74,10 @@
       <AllOutputFiles Include="$(TargetDir)**\*.*" Exclude="$(TargetDir)Ares.Device.dll;$(TargetDir)Ares.Datamodel.dll;$(TargetDir)obj\**\*.*" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(AllOutputFiles)" DestinationFiles="@(AllOutputFiles->'$(StagingFolder)bin\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(AllOutputFiles)" DestinationFiles="@(AllOutputFiles->'$(StagingFolder)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 
     <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(PackageName)" Overwrite="true" />
     <RemoveDir Directories="$(StagingFolder)" />
   </Target>
 </Project>
+
