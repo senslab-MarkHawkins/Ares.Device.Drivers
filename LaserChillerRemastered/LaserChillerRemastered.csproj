@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Ares.Toolkit.Device" Version="0.1.0" />
+    <PackageReference Include="Ares.Toolkit.Serial" Version="0.1.0" />
     <PackageReference Include="ReactiveUI" Version="23.1.8" />
     <PackageReference Include="ReactiveUI.SourceGenerators" Version="2.6.1">
       <PrivateAssets>all</PrivateAssets>
@@ -24,13 +25,6 @@
     </PackageReference>
     <PackageReference Include="System.IO.Ports" Version="10.0.3" />
     <PackageReference Include="System.Reactive" Version="6.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="../../Ares.Toolkit.Serial/Ares.Toolkit.Serial/Ares.Toolkit.Serial.csproj">
-      <Private>true</Private>
-      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
-    </ProjectReference>
   </ItemGroup>
 
   <Target Name="PackageAresDriver" AfterTargets="Build">
