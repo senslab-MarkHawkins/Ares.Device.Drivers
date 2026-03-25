@@ -14,7 +14,7 @@ serial_settings:
   requires_unit_id: true
   unit_id_regex: "^[A-Z]$"
   unit_id_validation_hint: "Alicat Unit IDs must be a single letter (A-Z)."
-  variable_baud_rate: true
+  variable_baud_rate: false
   allowed_baud_rates: [9600, 19200, 38400, 57600, 115200]
   default_baud_rate: 19200 # Keeps the UI friendly by pre-filling
 

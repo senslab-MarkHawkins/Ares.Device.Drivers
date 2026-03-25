@@ -14,7 +14,7 @@ serial_settings:
   requires_unit_id: true
   unit_id_regex: "^[0-9]+$"
   unit_id_validation_hint: "Address must be a numeric value (e.g. 1)."
-  variable_baud_rate: true
+  variable_baud_rate: false
   allowed_baud_rates: [9600, 19200, 38400, 57600, 115200]
   default_baud_rate: 9600
 
