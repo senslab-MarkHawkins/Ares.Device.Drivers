@@ -14,7 +14,7 @@ public class AlicatBasisSim : IAlicatSim
   private readonly CancellationTokenSource _generalCancellationTokenSource = new();
   private readonly StandardVolumeFlow _flowBase = StandardVolumeFlow.FromStandardLitersPerMinute(8000);
   private readonly StandardVolumeFlow _totalizer = StandardVolumeFlow.FromStandardLitersPerMinute(0);
-  private readonly ISet<StatusCode> _statusCodes = new HashSet<StatusCode>();
+  private readonly ISet<MfcStatusCode> _statusCodes = new HashSet<MfcStatusCode>();
   private readonly Temperature _temperatureBase = Temperature.FromDegreesCelsius(40);
   private readonly float _valveDriveBase = 0;
 
@@ -144,7 +144,7 @@ public class AlicatBasisSim : IAlicatSim
 
     if(command.StartsWith("C", StringComparison.InvariantCultureIgnoreCase))
     {
-      _statusCodes.Remove(StatusCode.Hld);
+      _statusCodes.Remove(MfcStatusCode.Hld);
       _valveDrive = 0;
       SendDataFrame();
       return;
@@ -178,7 +178,7 @@ public class AlicatBasisSim : IAlicatSim
     var percentageParsed = float.TryParse(query, out var holdPercentage);
     if(percentageParsed)
     {
-      _statusCodes.Add(StatusCode.Hld);
+      _statusCodes.Add(MfcStatusCode.Hld);
       _valveDrive = holdPercentage;
       SendDataFrame();
     }
@@ -297,7 +297,7 @@ public class AlicatBasisSim : IAlicatSim
     var random = new Random();
     _temperature = Temperature.FromDegreesCelsius(_temperatureBase.DegreesCelsius + random.Next(-10, 10));
     _massFlow = StandardVolumeFlow.FromStandardLitersPerMinute(_flowBase.StandardLitersPerMinute + random.Next(-10, 10));
-    if(!_statusCodes.Contains(StatusCode.Hld))
+    if(!_statusCodes.Contains(MfcStatusCode.Hld))
       _valveDrive = random.Next(1, 99);
   }
 

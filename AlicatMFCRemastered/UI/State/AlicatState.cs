@@ -1,4 +1,5 @@
-﻿using AlicatMFCRemastered.Enums;
+﻿using AlicatMFCRemastered.Commands.Responses;
+using AlicatMFCRemastered.Enums;
 
 namespace AlicatMFCRemastered.UI.State;
 
@@ -22,7 +23,7 @@ public class MfcLiveData
   public double MassFlow { get; set; }
   public double Setpoint { get; set; }
   public double? ValveDrive { get; set; }
-  public List<string> StatusCodes { get; set; } = new();
+  public List<MfcStatusCode> StatusCodes { get; set; } = new();
 }
 
 public class MfcGasInfo

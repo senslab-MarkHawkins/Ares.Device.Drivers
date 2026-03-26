@@ -1,6 +1,6 @@
 ﻿namespace AlicatMFCRemastered.Commands.Responses;
 
-public enum StatusCode
+public enum MfcStatusCode
 {
   Unknown,
   Adc,

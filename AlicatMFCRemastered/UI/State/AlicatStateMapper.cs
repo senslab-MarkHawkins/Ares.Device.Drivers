@@ -1,4 +1,6 @@
-﻿using Ares.Datamodel;
+﻿using AlicatMFCRemastered.Commands.Responses;
+using Ares.Datamodel;
+using Ares.Datamodel.Extensions;
 
 namespace AlicatMFCRemastered.UI.State;
 
@@ -27,7 +29,7 @@ public static class AlicatStateMapper
         VolumetricFlow = liveFields.GetValueOrDefault("VolumetricFlow")?.NumberValue ?? null,
         Setpoint = liveFields.GetValueOrDefault("Setpoint")?.NumberValue ?? 0,
         ValveDrive = liveFields.GetValueOrDefault("ValveDrive")?.NumberValue ?? null,
-        StatusCodes = liveFields.GetValueOrDefault("StatusCodes")?.ListValue?.Values?.Select(v => v.StringValue).ToList() ?? new List<string>()
+        StatusCodes = liveFields.GetValueOrDefault("StatusCodes")?.ListValue?.Values?.Select(v => v.StringValue).Select(ToStatusCode).ToList() ?? []
       };
     }
 
@@ -58,5 +60,10 @@ public static class AlicatStateMapper
     }
 
     return model;
+  }
+
+  private static MfcStatusCode ToStatusCode(string code)
+  {
+    return Enum.GetValues<MfcStatusCode>().FirstOrDefault(c => c.ToString().Equals(code, StringComparison.OrdinalIgnoreCase));
   }
 }

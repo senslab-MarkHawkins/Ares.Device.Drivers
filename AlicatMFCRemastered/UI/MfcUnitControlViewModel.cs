@@ -1,8 +1,9 @@
+using AlicatMFCRemastered.Commands.Responses;
 using AlicatMFCRemastered.Commands.Responses.Streamed;
+using AlicatMFCRemastered.UI.Helpers;
 using AlicatMFCRemastered.UI.State;
 using Ares.Toolkit.Device.UI;
 using DynamicData;
-using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
@@ -23,11 +24,7 @@ public partial class MfcUnitControlViewModel : DeviceUnitControlViewModel<MassFl
     AlicatState = new AlicatMfcState();
     _stateSubscription = mfc.StateStream
       .Select(AlicatStateMapper.FromAresStruct)
-      .Subscribe(newState =>
-      {
-        AlicatState = newState;
-        HasValidData = true;
-      });
+      .Subscribe(UpdateState);
 
     HoldValvesAtCurrentPositionCommand = ReactiveCommand.CreateFromTask(Device.HoldValvesAtCurrentPosition);
     CancelValveHoldCommand = ReactiveCommand.CreateFromTask(Device.CancelValveHold);
@@ -79,7 +76,7 @@ public partial class MfcUnitControlViewModel : DeviceUnitControlViewModel<MassFl
   public partial IEnumerable<GasInfoEntry>? AvailableGases { get; set; }
   [Reactive]
   public partial bool HasValidData { get; private set; }
-  public ISourceList<Status> StatusCodes { get; } = new SourceList<Status>();
+  public ISourceList<MfcStatusCode> StatusCodes { get; } = new SourceList<MfcStatusCode>();
   public ReactiveCommand<Unit, Unit> HoldValvesAtCurrentPositionCommand { get; }
   public ReactiveCommand<Unit, Unit> CancelValveHoldCommand { get; }
   public ReactiveCommand<Unit, Unit> HoldValvesClosedCommand { get; }
@@ -88,5 +85,18 @@ public partial class MfcUnitControlViewModel : DeviceUnitControlViewModel<MassFl
 
   [Reactive]
   public partial AlicatMfcState AlicatState { get; set; }
+
+  private void UpdateState(AlicatMfcState? state)
+  {
+    if(state is null)
+    {
+      HasValidData = false;
+      return;
+    }
+
+    AlicatState = state;
+    StatusCodes.SyncWith(state.LiveData.StatusCodes);
+    HasValidData = true;
+  }
 }
 

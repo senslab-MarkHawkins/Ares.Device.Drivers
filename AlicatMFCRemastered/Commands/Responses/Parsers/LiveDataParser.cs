@@ -63,7 +63,7 @@ internal class LiveDataParser : AsciiResponseParser<LiveDataResponse>
     StandardVolumeFlow? totalizedMassFlow = default;
     double? valveDrive = null;
     string? gas = default;
-    List<StatusCode> statusCodes = new();
+    List<MfcStatusCode> statusCodes = new();
     for(var i = 0; i < tokens.Length; i++)
     {
       var format = FormatEntries.First(fe => fe.EntryNumber == i + 1);
@@ -123,7 +123,7 @@ internal class LiveDataParser : AsciiResponseParser<LiveDataResponse>
           break;
         case DataFormatField.Error:
         case DataFormatField.Status:
-          var foundCode = Enum.TryParse<StatusCode>(token, true, out var code);
+          var foundCode = Enum.TryParse<MfcStatusCode>(token, true, out var code);
           if(foundCode)
             statusCodes.Add(code);
           break;
@@ -132,7 +132,7 @@ internal class LiveDataParser : AsciiResponseParser<LiveDataResponse>
           var result = matches.Select(m => m.Groups[1].Value).ToList();
           foreach(var match in result)
           {
-            var foundCode2 = Enum.TryParse<StatusCode>(match, true, out var code2);
+            var foundCode2 = Enum.TryParse<MfcStatusCode>(match, true, out var code2);
             if(foundCode2)
               statusCodes.Add(code2);
           }

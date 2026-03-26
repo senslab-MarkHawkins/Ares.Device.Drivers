@@ -1,4 +1,5 @@
-﻿@using AlicatMFCRemastered.Enums
+﻿@using AlicatMFCRemastered.Commands.Responses
+@using AlicatMFCRemastered.Enums
 @using AlicatMFCRemastered.UI
 @using Radzen
 @using Radzen.Blazor
@@ -91,7 +92,7 @@
     <div class="d-flex gap-2 status-codes mt-3">
       @foreach(var stat in ViewModel!.StatusCodes.Items)
       {
-        <RadzenBadge BadgeStyle="BadgeStyle.Dark" Text="@stat.ToString().ToUpper()" class="px-2 py-1 rounded-3" />
+        <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="@stat.ToString().ToUpper()" class="px-2 py-1 rounded-3" />
       }
     </div>
   }
@@ -108,7 +109,7 @@
   private bool _cancellingHold;
 
   private bool ValveInteracting => _cancellingHold || _waitingOnHoldClose || _waitingOnHoldCurrent;
-  private bool ValveHolding => ViewModel!.AlicatState.LiveData.StatusCodes.Any(code => code == MfcStatusEnum.HLD.ToString());
+  private bool ValveHolding => ViewModel!.StatusCodes.Items.Any(code => code == MfcStatusCode.Hld);
 
   private async Task CancelHoldClicked()
   {

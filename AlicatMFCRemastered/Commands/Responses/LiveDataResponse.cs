@@ -18,7 +18,7 @@ public class LiveDataResponse : CommandResponse
     StandardVolumeFlow? totalizedMassFlow,
     double? valveDrive,
     string gas,
-    IEnumerable<StatusCode> statusCodes)
+    IEnumerable<MfcStatusCode> statusCodes)
     : base(id)
   {
     AbsolutePressure = absolutePressure;
@@ -47,6 +47,6 @@ public class LiveDataResponse : CommandResponse
   public StandardVolumeFlow? Setpoint { get; }
   public StandardVolumeFlow? TotalizedMassFlow { get; }
   public string Gas { get; } = "Errrrrorr";
-  public IList<StatusCode> StatusCodes { get; } = new List<StatusCode>();
+  public IList<MfcStatusCode> StatusCodes { get; } = new List<MfcStatusCode>();
   public double? ValveDrive { get; }
 }

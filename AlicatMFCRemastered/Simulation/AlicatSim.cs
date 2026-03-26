@@ -16,7 +16,7 @@ public class AlicatSim : IAlicatSim
   private readonly string[] _mfgResponse;
   private readonly CancellationTokenSource _generalCancellationTokenSource = new();
   private readonly StandardVolumeFlow _massFlowBase = StandardVolumeFlow.FromStandardLitersPerMinute(8000);
-  private readonly ISet<StatusCode> _statusCodes = new HashSet<StatusCode>();
+  private readonly ISet<MfcStatusCode> _statusCodes = new HashSet<MfcStatusCode>();
   private readonly Temperature _temperatureBase = Temperature.FromDegreesCelsius(40);
   private readonly VolumeFlow _volumetricFlowBase = VolumeFlow.FromMillilitersPerSecond(6700);
 
@@ -53,13 +53,13 @@ public class AlicatSim : IAlicatSim
       new(DeviceId.ToString(), lineNumber++, DataFormatField.Mass.ToFriendlyString(), "signed", "+0000.0", "+0500.0", "SLPM"),
       new(DeviceId.ToString(), lineNumber++, DataFormatField.Setpoint.ToFriendlyString(), "signed", "+0000.0", "+0500", "SLPM"),
       new(DeviceId.ToString(), lineNumber++, DataFormatField.Gas.ToFriendlyString(), "string", _availableGases.First(), _availableGases.Last(), "na"),
-      new(DeviceId.ToString(), lineNumber++, DataFormatField.Error.ToFriendlyString(), "string", "na", StatusCode.Adc.ToString(), "na"),
-      new(DeviceId.ToString(), lineNumber++, DataFormatField.Status.ToFriendlyString(), "string", "na", StatusCode.Lck.ToString(), "na"),
-      new(DeviceId.ToString(), lineNumber++, DataFormatField.Status.ToFriendlyString(), "string", "na", StatusCode.Ovr.ToString(), "na"),
-      new(DeviceId.ToString(), lineNumber++, DataFormatField.Status.ToFriendlyString(), "string", "na", StatusCode.Pov.ToString(), "na"),
-      new(DeviceId.ToString(), lineNumber++, DataFormatField.Status.ToFriendlyString(), "string", "na", StatusCode.Tov.ToString(), "na"),
-      new(DeviceId.ToString(), lineNumber++, DataFormatField.Status.ToFriendlyString(), "string", "na", StatusCode.Vov.ToString(), "na"),
-      new(DeviceId.ToString(), lineNumber, DataFormatField.Status.ToFriendlyString(), "string", "na", StatusCode.Mov.ToString(), "na")
+      new(DeviceId.ToString(), lineNumber++, DataFormatField.Error.ToFriendlyString(), "string", "na", MfcStatusCode.Adc.ToString(), "na"),
+      new(DeviceId.ToString(), lineNumber++, DataFormatField.Status.ToFriendlyString(), "string", "na", MfcStatusCode.Lck.ToString(), "na"),
+      new(DeviceId.ToString(), lineNumber++, DataFormatField.Status.ToFriendlyString(), "string", "na", MfcStatusCode.Ovr.ToString(), "na"),
+      new(DeviceId.ToString(), lineNumber++, DataFormatField.Status.ToFriendlyString(), "string", "na", MfcStatusCode.Pov.ToString(), "na"),
+      new(DeviceId.ToString(), lineNumber++, DataFormatField.Status.ToFriendlyString(), "string", "na", MfcStatusCode.Tov.ToString(), "na"),
+      new(DeviceId.ToString(), lineNumber++, DataFormatField.Status.ToFriendlyString(), "string", "na", MfcStatusCode.Vov.ToString(), "na"),
+      new(DeviceId.ToString(), lineNumber, DataFormatField.Status.ToFriendlyString(), "string", "na", MfcStatusCode.Mov.ToString(), "na")
     };
 
     _mfgResponse = new[]
@@ -98,7 +98,7 @@ public class AlicatSim : IAlicatSim
   {
     var stringCommand = Encoding.ASCII.GetString(command);
     // simulating the mfc ignoring commands when it's busy processing existing ones
-    if (_processingCommand)
+    if(_processingCommand)
     {
       Debug.WriteLine($"Got command [{stringCommand}], but ignored as MFC is busy.");
       return;
@@ -108,7 +108,7 @@ public class AlicatSim : IAlicatSim
     var random = new Random();
     // some fake delay to simulate transmission/processing/etc.
     await Task.Delay(random.Next(10, 20));
-    
+
     ProcessCommand(stringCommand);
     _processingCommand = false;
   }
@@ -199,7 +199,7 @@ public class AlicatSim : IAlicatSim
 
     if(command.StartsWith("C", StringComparison.InvariantCultureIgnoreCase))
     {
-      _statusCodes.Remove(StatusCode.Hld);
+      _statusCodes.Remove(MfcStatusCode.Hld);
       SendDataInfo();
       return;
     }
@@ -232,7 +232,7 @@ public class AlicatSim : IAlicatSim
   {
     // HC HP and H all should set the status code to HLD that's mostly what we are concerned with
     // without going deep into how the MFC works
-    _statusCodes.Add(StatusCode.Hld);
+    _statusCodes.Add(MfcStatusCode.Hld);
     SendDataInfo();
   }
 
