@@ -7,6 +7,7 @@ namespace AlicatMFCRemastered.Simulation;
 
 public class AlicatSim : IAlicatSim
 {
+  private const double MaxMassFlowStepSccm = 25;
   private readonly Pressure _absolutePressureBase = Pressure.FromAtmospheres(100);
   private readonly string[] _availableGases = { "Air", "Ar", "CH4", "CO", "CO2", "C2H6", "H2", "He", "N2", "N2O", "Ne", "O2" };
   private readonly Action<byte[]> _byteSender;
@@ -15,7 +16,7 @@ public class AlicatSim : IAlicatSim
   private readonly DataFrameInfoLine[] _formatLines;
   private readonly string[] _mfgResponse;
   private readonly CancellationTokenSource _generalCancellationTokenSource = new();
-  private readonly StandardVolumeFlow _massFlowBase = StandardVolumeFlow.FromStandardLitersPerMinute(8000);
+  private readonly StandardVolumeFlow _massFlowBase = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(200);
   private readonly ISet<MfcStatusCode> _statusCodes = new HashSet<MfcStatusCode>();
   private readonly Temperature _temperatureBase = Temperature.FromDegreesCelsius(40);
   private readonly VolumeFlow _volumetricFlowBase = VolumeFlow.FromMillilitersPerSecond(6700);
@@ -25,7 +26,7 @@ public class AlicatSim : IAlicatSim
 
   private StandardVolumeFlow _massFlow;
   private bool _processingCommand;
-  private StandardVolumeFlow _setpoint = StandardVolumeFlow.FromStandardLitersPerMinute(8000);
+  private StandardVolumeFlow _setpoint = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(200);
 
   private CancellationTokenSource _streamingTokenSource = new();
   private Temperature _temperature;
@@ -41,7 +42,7 @@ public class AlicatSim : IAlicatSim
     _absolutePressure = Pressure.FromAtmospheres(_absolutePressureBase.Atmospheres + random.Next(-10, 10));
     _temperature = Temperature.FromDegreesCelsius(_temperatureBase.DegreesCelsius + random.Next(-10, 10));
     _volumetricFlow = VolumeFlow.FromCubicCentimetersPerMinute(_volumetricFlowBase.CubicCentimetersPerMinute + random.Next(-10, 10));
-    _massFlow = StandardVolumeFlow.FromStandardLitersPerMinute(_massFlowBase.StandardLitersPerMinute + random.Next(-10, 10));
+    _massFlow = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(_massFlowBase.StandardCubicCentimetersPerMinute + random.Next(-10, 10));
 
     var lineNumber = 1;
     var formatLines = new List<DataFrameInfoLine?>()
@@ -50,8 +51,8 @@ public class AlicatSim : IAlicatSim
       new(DeviceId.ToString(), lineNumber++, DataFormatField.Pressure.ToFriendlyString(), "signed", "+000.00", "+160.00", "PSIA"),
       showTemperature ? new(DeviceId.ToString(), lineNumber++, DataFormatField.Temperature.ToFriendlyString(), "signed", "-010.00", "+050.00", "C") : null,
       showVolumetric ? new(DeviceId.ToString(), lineNumber++, DataFormatField.Volumetric.ToFriendlyString(), "signed", "+0000.0", "+0500.0", "CCM") : null,
-      new(DeviceId.ToString(), lineNumber++, DataFormatField.Mass.ToFriendlyString(), "signed", "+0000.0", "+0500.0", "SLPM"),
-      new(DeviceId.ToString(), lineNumber++, DataFormatField.Setpoint.ToFriendlyString(), "signed", "+0000.0", "+0500", "SLPM"),
+      new(DeviceId.ToString(), lineNumber++, DataFormatField.Mass.ToFriendlyString(), "signed", "+0000.0", "+0500.0", "SCCM"),
+      new(DeviceId.ToString(), lineNumber++, DataFormatField.Setpoint.ToFriendlyString(), "signed", "+0000.0", "+0500", "SCCM"),
       new(DeviceId.ToString(), lineNumber++, DataFormatField.Gas.ToFriendlyString(), "string", _availableGases.First(), _availableGases.Last(), "na"),
       new(DeviceId.ToString(), lineNumber++, DataFormatField.Error.ToFriendlyString(), "string", "na", MfcStatusCode.Adc.ToString(), "na"),
       new(DeviceId.ToString(), lineNumber++, DataFormatField.Status.ToFriendlyString(), "string", "na", MfcStatusCode.Lck.ToString(), "na"),
@@ -247,7 +248,7 @@ public class AlicatSim : IAlicatSim
     if(!numeric)
       return;
 
-    _setpoint = StandardVolumeFlow.FromStandardLitersPerMinute(setpoint);
+    _setpoint = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(setpoint);
     SendDataInfo();
   }
 
@@ -334,11 +335,19 @@ public class AlicatSim : IAlicatSim
 
   private void RandomizeData()
   {
-    var random = new Random();
+    var random = Random.Shared;
     _absolutePressure = Pressure.FromAtmospheres(_absolutePressureBase.Atmospheres + random.Next(-10, 10));
     _temperature = Temperature.FromDegreesCelsius(_temperatureBase.DegreesCelsius + random.Next(-10, 10));
-    _volumetricFlow = VolumeFlow.FromMillilitersPerSecond(_volumetricFlowBase.MillilitersPerSecond + random.Next(-10, 10));
-    _massFlow = StandardVolumeFlow.FromStandardLitersPerMinute(_massFlowBase.StandardLitersPerMinute + random.Next(-10, 10));
+
+    var setpointSccm = _setpoint.StandardCubicCentimetersPerMinute;
+    var currentMassFlowSccm = _massFlow.StandardCubicCentimetersPerMinute;
+    var massFlowDeltaSccm = setpointSccm - currentMassFlowSccm;
+    var easedMassFlowSccm = currentMassFlowSccm + Math.Clamp(massFlowDeltaSccm, -MaxMassFlowStepSccm, MaxMassFlowStepSccm);
+    var jitterRangeSccm = Math.Max(Math.Abs(setpointSccm) * 0.02, 0.5);
+    var massFlowSccm = easedMassFlowSccm + ((random.NextDouble() * 2) - 1) * jitterRangeSccm;
+
+    _massFlow = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(massFlowSccm);
+    _volumetricFlow = VolumeFlow.FromCubicCentimetersPerMinute(_massFlow.StandardCubicCentimetersPerMinute);
     return;
   }
 
