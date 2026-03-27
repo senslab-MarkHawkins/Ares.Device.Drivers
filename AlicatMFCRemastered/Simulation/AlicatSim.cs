@@ -165,7 +165,10 @@ public class AlicatSim : IAlicatSim
   private void ProcessQualifiedCommand(string command)
   {
     if(string.IsNullOrEmpty(command))
+    {
       SendDataInfo();
+      return;
+    }
 
     command = command.Replace("$$", string.Empty);
     if(command.StartsWith("@="))
@@ -222,7 +225,9 @@ public class AlicatSim : IAlicatSim
     var numeric = double.TryParse(command, out var setpoint);
     if(numeric)
     {
-      Trace.WriteLine($"{GetType().Name} does not support setpoints based on full scale yet.");
+      var numericSetpoint = setpoint / 64000; // forgot where this number's from (:
+      numericSetpoint *= 500; // 500 is max setpoint
+      _setpoint = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(numericSetpoint);
       SendDataInfo();
     }
 
