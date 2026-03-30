@@ -888,7 +888,7 @@ public class MassFlowController : AresDevice, IMassFlowController
           if(GetArg(MassFlowControllerCommandParameter.Setpoint) is not { HasNumberValue: true, NumberValue: var setpoint })
             return ArgumentError("NewSetpoint", "Setpoint", "number");
 
-          await NewSetpoint(StandardVolumeFlow.FromStandardLitersPerMinute(setpoint));
+          await NewSetpoint(StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(setpoint));
           break;
 
         case MassFlowControllerCommand.GetSetpoint:
