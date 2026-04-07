@@ -7,6 +7,7 @@ using LindbergFurnaceRemastered.Commands;
 using LindbergFurnaceRemastered.Commands.Requests;
 using LindbergFurnaceRemastered.Connection;
 using LindbergFurnaceRemastered.Simulation;
+using System.Buffers.Text;
 using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -43,6 +44,14 @@ public class LindbergTubeFurnace : AresDevice
     {
       _serialConnection = new LindbergFurnaceConnection(serialInfo.PortName);
     }
+
+    StateSchema = AresSchemaBuilder.Empty()
+      .AddEntry("Id", AresSchemaBuilder.StringEntry().Build())
+      .AddEntry("Name", AresSchemaBuilder.StringEntry().AsOptional().Build())
+      .AddEntry("Address", AresSchemaBuilder.NumberEntry().Build())
+      .AddEntry("Current Temperature", AresSchemaBuilder.NumberEntry().Build())
+      .AddEntry("Setpoint", AresSchemaBuilder.NumberEntry().Build())
+      .Build();
   }
 
   public override IObservable<AresStruct> StateStream { get; }
