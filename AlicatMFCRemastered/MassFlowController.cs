@@ -2,7 +2,6 @@
 using AlicatMFCRemastered.Commands.Requests;
 using AlicatMFCRemastered.Commands.Responses;
 using AlicatMFCRemastered.Commands.Responses.Streamed;
-using AlicatMFCRemastered.Commands.Types;
 using AlicatMFCRemastered.Enums;
 using AlicatMFCRemastered.Models;
 using AlicatMFCRemastered.Simulation;
@@ -12,8 +11,8 @@ using Ares.Datamodel.Extensions;
 using Ares.Datamodel.Factories;
 using Ares.Device;
 using Ares.Toolkit.Serial;
+using Microsoft.Extensions.Logging;
 using Parsers.AlicatMFCRemastered;
-using ReactiveUI;
 using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -37,14 +36,16 @@ public class MassFlowController : AresDevice, IMassFlowController
   private LiveDataResponse? _liveData;
   private readonly IMfcConnection _serialConnection;
   private MfcTypeEnum _mfcType;
+  private ILogger _logger;
   private MfcSetpointSourceEnum _setpointSource = MfcSetpointSourceEnum.UnknownSource;
 
-  public MassFlowController(DeviceConnectionInfo connectionInfo) : base(connectionInfo)
+  public MassFlowController(DeviceConnectionInfo connectionInfo, ILogger logger) : base(connectionInfo)
   {
     HasValve = connectionInfo.DeviceSettings.Fields["HasValve"]?.BoolValue ?? false;
     _mfcType = connectionInfo.DeviceSettings.Fields["IsBasis"].BoolValue ? MfcTypeEnum.Basis2 : MfcTypeEnum.Normal;
 
-    //_logger = logger;
+    _logger = logger;
+    _logger.LogInformation($"ARES connected a new Alicat MFC to the system.");
     StateStream = _stateSubject.AsObservable();
     var serialInfo = connectionInfo.SerialConnectionInfo;
     AssumedId = serialInfo.HasSerialId ? serialInfo.SerialId[0] : 'A';
@@ -71,7 +72,8 @@ public class MassFlowController : AresDevice, IMassFlowController
   {
     if(_mfcType == MfcTypeEnum.Basis2)
     {
-      throw new InvalidOperationException("Basis devices cannot query manufacturer info.");
+      _logger.LogWarning($"Attemped to query manufacturer information for Alicat MFC, but the Alicat was a Basis and doesn't support that action.");
+      return false;
     }
 
     // for now we just get entry 4 from the manufacturer info as that contains the model number we need to
@@ -146,12 +148,20 @@ public class MassFlowController : AresDevice, IMassFlowController
   {
     await StopUpdateLoop();
     if(_serialConnection is null)
-      throw new InvalidOperationException("Connection was null when trying to change hardware id");
+    {
+      var message = $"Alicat MFC tried to change to an ID of {targetId}, but failed because it's connection was null.";
+      _logger.LogError(message);
+      return;
+    }
 
     var reservedId = _serialConnection.ReserveId(targetId);
 
     if(!reservedId)
-      throw new InvalidOperationException($"ID {targetId} is already in use by another Alicat");
+    {
+      var message = $"Alicat MFC tried to switch to use {targetId} as it's ID, but it was in use by another Alicat!";
+      _logger.LogError(message);
+      return;
+    }
 
     if(_mfcType == MfcTypeEnum.Basis2)
     {
@@ -174,6 +184,7 @@ public class MassFlowController : AresDevice, IMassFlowController
     }
     catch(TimeoutException)
     {
+      _logger.LogError("Alicat MFC encountered a timeout exception while trying to change it's ID");
     }
 
     if(result is null)
@@ -672,7 +683,7 @@ public class MassFlowController : AresDevice, IMassFlowController
   private void UpdateLiveData(LiveDataResponse liveResponse)
   {
     _liveData = liveResponse;
-
+    Console.WriteLine("########## STATE MOMENT ##########");
     var next = AresStateBuilder
       .From(_stateSubject.Value)
       .AddStruct("LiveData", b =>
