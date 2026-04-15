@@ -45,7 +45,7 @@ public class MassFlowController : AresDevice, IMassFlowController
     _mfcType = connectionInfo.DeviceSettings.Fields["IsBasis"].BoolValue ? MfcTypeEnum.Basis2 : MfcTypeEnum.Normal;
 
     _logger = logger;
-    _logger.LogInformation($"ARES connected a new Alicat MFC to the system.");
+    _logger.LogInformation($"ARES connected a new Alicat MFC to the system named {Name}.");
     StateStream = _stateSubject.AsObservable();
     var serialInfo = connectionInfo.SerialConnectionInfo;
     AssumedId = serialInfo.HasSerialId ? serialInfo.SerialId[0] : 'A';
@@ -116,7 +116,7 @@ public class MassFlowController : AresDevice, IMassFlowController
         var modelNumber = entry.Data.Split('-').Skip(1).FirstOrDefault();
         if(modelNumber is null)
         {
-          //_logger.LogWarning("Failed to get max value for MFC {Name} with model number {Model}", Name, entry.Data);
+          _logger.LogWarning($"Failed to get max value for MFC {Name} with model number {entry.Data}");
           return;
         }
         var numMatch = Regex.Match(modelNumber, @"\d+");
@@ -127,14 +127,12 @@ public class MassFlowController : AresDevice, IMassFlowController
           var unitFound = MfcUnitParser.Parser.TryParse<StandardVolumeFlowUnit>(unitMatch.Value, out var unit);
           if(!unitFound)
           {
-            //_logger.LogWarning("Failed to get max value for MFC {Name} as we couldn't get the value units from model number {Model}", Name, entry.Data);
+            _logger.LogWarning($"Failed to get max value for MFC {Name} as we couldn't get the value units from model number {entry.Data}");
             return;
           }
           if(!int.TryParse(num, out var numericNum) || numericNum <= 0)
           {
-            //_logger.LogWarning(
-            //"Failed to get max value for MFC {Name} as we couldn't get the numeric max value from model number {Model}",
-            //Name, entry.Data);
+            _logger.LogWarning($"Failed to get max value for MFC {Name} as we couldn't get the numeric max value from model number {entry.Data}");
             return;
           }
           var flowVal = StandardVolumeFlow.From(numericNum, unit);
@@ -149,7 +147,7 @@ public class MassFlowController : AresDevice, IMassFlowController
     await StopUpdateLoop();
     if(_serialConnection is null)
     {
-      var message = $"Alicat MFC tried to change to an ID of {targetId}, but failed because it's connection was null.";
+      var message = $"Alicat MFC {Name} tried to change to an ID of {targetId}, but failed because it's connection was null.";
       _logger.LogError(message);
       return;
     }
@@ -190,7 +188,8 @@ public class MassFlowController : AresDevice, IMassFlowController
     if(result is null)
     {
       _serialConnection.ReleaseId(targetId);
-      throw new InvalidOperationException("Could not get a response for the newly changed id");
+      _logger.LogError($"Could not get a response trying to change the ID of Alicat MFC {Name} from {AssumedId} to {targetId}");
+      return;
     }
 
     _serialConnection.ReleaseId(AssumedId);
@@ -218,7 +217,8 @@ public class MassFlowController : AresDevice, IMassFlowController
     catch(TimeoutException)
     {
       _serialConnection.ReleaseId(targetId);
-      throw new InvalidOperationException("Could not get a response for the newly changed id");
+      _logger.LogError($"Could not get a response trying to query live data for Alicat MFC {Name}");
+      return;
     }
 
     _serialConnection.ReleaseId(AssumedId);
@@ -264,7 +264,6 @@ public class MassFlowController : AresDevice, IMassFlowController
 
   public double? GetSetpoint()
     => _liveData?.Setpoint?.Value;
-
 
   private async Task QueryBasisGasList()
   {
@@ -519,13 +518,16 @@ public class MassFlowController : AresDevice, IMassFlowController
     var formatEntries = _dataFrameFormatEntries?.ToArray();
     if(formatEntries is null)
     {
-      throw new InvalidOperationException(
-        $"Cannot get live data as the format entries have not even been initialized. Need to acquire the format entries first.");
+      _logger.LogError($"Failed to retrieve live data, format entries have not been initialized. Format entries need to be acquired first.");
+      throw new InvalidOperationException($"Cannot get live data as the format entries have not even been initialized. Need to acquire the format entries first.");
     }
 
     if(formatEntries.Length < _expectedDataFormatEntryCount)
-      throw new InvalidOperationException(
-        $"Cannot request live data without knowing format entries. Number of currently known formats: {formatEntries.Length}, Expected at least {_expectedDataFormatEntryCount}");
+    {
+      _logger.LogError($"ALICAT MFC {Name}: Cannot request live data without knowing format entreis. Number of currently known formats: {formatEntries.Length}, Expected at least {_expectedDataFormatEntryCount}");
+      throw new InvalidOperationException($"Cannot request live data without knowing format entries. Number of currently known formats: {formatEntries.Length}, Expected at least {_expectedDataFormatEntryCount}");
+
+    }
 
     var command = new LiveDataRequest(formatEntries, FirmwareVersion);
     return Send(command, TimeSpan.FromSeconds(10));
@@ -534,7 +536,10 @@ public class MassFlowController : AresDevice, IMassFlowController
   private async Task Initialize()
   {
     if(_serialConnection is null)
-      throw new NullReferenceException("Initialize was called, but Connection was not set");
+    {
+      _logger.LogError($"ALICAT MFC {Name}: Initialize was called, but connection was not set!");
+      return;
+    }
 
     await StopUpdateLoop();
 
@@ -565,6 +570,7 @@ public class MassFlowController : AresDevice, IMassFlowController
     var dataFrameQuerySuccess = await QueryDataFrameFormat();
     if(!dataFrameQuerySuccess)
     {
+      _logger.LogError($"### ALICAT MFC {Name}: Failed to query the data frames. ###");
       throw new InvalidOperationException("Failed to query the data frames.");
     }
 
@@ -578,12 +584,14 @@ public class MassFlowController : AresDevice, IMassFlowController
     var gasQuerySuccess = await QueryGasListInfo();
     if(!gasQuerySuccess)
     {
+      _logger.LogError($"### ALICAT MFC {Name}: Failed to query the gas list.");
       throw new InvalidOperationException("Failed to query the gas list.");
     }
     await QueryFirmwareVersion();
     var manufacturerInfoQuerySuccess = await QueryManufacturerInfo();
     if(!manufacturerInfoQuerySuccess)
     {
+      _logger.LogError($"### ALICAT MFC {Name}: Failed to query the manufacturer info.");
       throw new InvalidOperationException("Failed to query the manufacturer info.");
     }
   }
@@ -652,10 +660,12 @@ public class MassFlowController : AresDevice, IMassFlowController
 
       // This should never happen, but in case it does lets throw an exception as it's important to figure out
       // why the response id did not match.
+      _logger.LogError($"### ALICAT MFC {Name}: Requested a live data line for MFC with id of {AssumedId}, but got a response with id of {response.Id} ###");  
       throw new InvalidOperationException($"Requested a live data line for MFC with id of {AssumedId} but got a response with id of {response.Id}");
     }
     catch(TimeoutException)
     {
+      _logger.LogError($"### ALICAT MFC {Name}: Could not get a valid response for MFC {Name} with an id of {AssumedId} within allotted time. ###");
       return new SerialDeviceValidationResult(false, $"Could not get a valid response for MFC {Name} with an id of {AssumedId} within allotted time.");
     }
   }
@@ -683,7 +693,6 @@ public class MassFlowController : AresDevice, IMassFlowController
   private void UpdateLiveData(LiveDataResponse liveResponse)
   {
     _liveData = liveResponse;
-    Console.WriteLine("########## STATE MOMENT ##########");
     var next = AresStateBuilder
       .From(_stateSubject.Value)
       .AddStruct("LiveData", b =>
@@ -823,6 +832,7 @@ public class MassFlowController : AresDevice, IMassFlowController
   {
     if(command.MfcId != AssumedId)
     {
+      _logger.LogError($"Attempted to send command improperly. {command.MfcId} != {AssumedId}");
       throw new InvalidOperationException($"Attempting to send command improperly. {command.MfcId} != {AssumedId}");
     }
     return _serialConnection.Send(command, timeout);

@@ -14,6 +14,7 @@ using ValveController.Interfaces;
 using ValveController.Simulation;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using Microsoft.Extensions.Logging;
 
 namespace ValveController;
 
@@ -21,9 +22,10 @@ public class ValveControllerDevice : AresDevice, IValveController
 {
   private readonly BehaviorSubject<AresStruct> _stateSubject = new(new AresStruct());
   private readonly IValveControllerConnection _connection;
-
-  public ValveControllerDevice(DeviceConnectionInfo connectionInfo) : base(connectionInfo)
+  private readonly ILogger _logger;
+  public ValveControllerDevice(DeviceConnectionInfo connectionInfo, ILogger logger) : base(connectionInfo)
   {
+    _logger = logger;
     var serialInfo = connectionInfo.SerialConnectionInfo;
     
     if (connectionInfo.Simulated)

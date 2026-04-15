@@ -4,6 +4,7 @@ using Ares.Datamodel.Extensions;
 using Ares.Datamodel.Factories;
 using Ares.Device;
 using Ares.Toolkit.Serial;
+using Microsoft.Extensions.Logging;
 using SyringePumpNE1000Remastered.Commands.Requests;
 using SyringePumpNE1000Remastered.Commands.Responses;
 using SyringePumpNE1000Remastered.Connection;
@@ -24,10 +25,12 @@ public sealed class SyringePumpNE1000Device : AresDevice, IAsyncDisposable
   private Task _pollingTask = Task.CompletedTask;
   private bool _connected;
   private bool _disposed;
+  private readonly ILogger _logger;
 
-  public SyringePumpNE1000Device(DeviceConnectionInfo info) : base(info)
+  public SyringePumpNE1000Device(DeviceConnectionInfo info, ILogger logger) : base(info)
   {
     AssumedAddress = GetConfiguredAddress(info.DeviceSettings);
+    _logger = logger;
     _currentState = new SyringePumpState
     {
       Address = AssumedAddress,

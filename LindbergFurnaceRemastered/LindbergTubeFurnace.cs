@@ -7,6 +7,7 @@ using LindbergFurnaceRemastered.Commands;
 using LindbergFurnaceRemastered.Commands.Requests;
 using LindbergFurnaceRemastered.Connection;
 using LindbergFurnaceRemastered.Simulation;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -22,16 +23,18 @@ public class LindbergTubeFurnace : AresDevice
   private CompositeDisposable _stateWatchers = new();
   private Task _stateUpdater = Task.CompletedTask;
   private readonly ILindbergFurnaceConnection _serialConnection;
+  private readonly ILogger _logger;
   
   public int AssumedAddress { get; private set; }
   public double CurrentTemperature { get; private set; }
   public double Setpoint { get; private set; }
 
-  public LindbergTubeFurnace(DeviceConnectionInfo connectionInfo) : base(connectionInfo)
+  public LindbergTubeFurnace(DeviceConnectionInfo connectionInfo, ILogger logger) : base(connectionInfo)
   {
     StateStream = _stateSubject.AsObservable();
     var serialInfo = connectionInfo.SerialConnectionInfo;
     AssumedAddress = serialInfo.HasSerialId ? int.Parse(serialInfo.SerialId) : 1;
+    _logger = logger;
 
     if(connectionInfo.Simulated)
     {
