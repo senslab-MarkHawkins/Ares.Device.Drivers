@@ -45,12 +45,12 @@ public class MassFlowController : AresDevice, IMassFlowController
     _mfcType = connectionInfo.DeviceSettings.Fields["IsBasis"].BoolValue ? MfcTypeEnum.Basis2 : MfcTypeEnum.Normal;
 
     _logger = logger;
-    _logger.LogInformation($"ARES connected a new Alicat MFC to the system named {Name}.");
     StateStream = _stateSubject.AsObservable();
     var serialInfo = connectionInfo.SerialConnectionInfo;
     AssumedId = serialInfo.HasSerialId ? serialInfo.SerialId[0] : 'A';
+    _logger.LogInformation($"ARES connected a new Alicat MFC to the system named {Name}. The ID of this new Alicat MFC is {AssumedId}");
 
-    if(connectionInfo.Simulated)
+    if (connectionInfo.Simulated)
     {
       var temp = new SimMassFlowControllerConnection(serialInfo.PortName);
       temp.AddCat(AssumedId, _mfcType);
