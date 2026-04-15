@@ -29,6 +29,7 @@ public class VerdiV6LaserDevice : AresDevice, IVerdiV6Laser
     else
     {
       _connection = new LaserConnection(serialInfo.PortName);
+      _connection.AttemptOpen();
     }
     
     UpdateState();

@@ -31,7 +31,10 @@ public class TicStepper : AresDevice, ITicStepperController
       _connection = new SimTicConnection(serialInfo.PortName);
     
     else
+    {
       _connection = new AresHardwareConnection(new SerialPortConnectionInfo(9600, Parity.None, 8, StopBits.One), serialInfo.PortName);
+      _connection.AttemptOpen();
+    }
 
     LoadSettings(connectionInfo.DeviceSettings);
     StateStream = _stateSubject.AsObservable();

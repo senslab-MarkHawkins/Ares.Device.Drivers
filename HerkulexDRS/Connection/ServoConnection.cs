@@ -12,5 +12,6 @@ public class ServoConnection : AresHardwareConnection, IServoConnection
     }
   )
   {
+    AttemptOpen();
   }
 }

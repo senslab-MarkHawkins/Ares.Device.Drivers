@@ -8,5 +8,6 @@ public class DataloggerThermometerConnection : AresHardwareConnection, IDatalogg
   public DataloggerThermometerConnection(string portName)
     : base(new SerialPortConnectionInfo(9600, Parity.None, 8, StopBits.One), portName)
   {
+    AttemptOpen();
   }
 }
