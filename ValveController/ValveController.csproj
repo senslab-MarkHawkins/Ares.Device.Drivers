@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="ARES.Datamodel" Version="0.20.0" />
-    <PackageReference Include="Ares.Toolkit.Device" Version="0.1.0" />
+    <PackageReference Include="Ares.Toolkit.Device" Version="1.0.0" />
     <PackageReference Include="Ares.Toolkit.Serial" Version="0.1.0" />
     <PackageReference Include="Radzen.Blazor" Version="10.0.1" />
     <PackageReference Include="ReactiveUI.Blazor" Version="23.1.8" />
