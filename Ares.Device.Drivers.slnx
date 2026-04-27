@@ -1,7 +1,9 @@
 <Solution>
   <Project Path="AlicatMFCRemastered/AlicatMFCRemastered.csproj" />
+  <Project Path="CanaKitRelay/CanaKitRelay.csproj" />
   <Project Path="FlirCM3Remastered/FlirCM3Remastered.csproj" />
   <Project Path="HerkulexDRS/HerkulexDRS.csproj" />
+  <Project Path="Lambda103Shutter/Lambda103Shutter.csproj" />
   <Project Path="LaserChillerRemastered/LaserChillerRemastered.csproj" />
   <Project Path="LindbergFurnaceRemastered/LindbergFurnaceRemastered.csproj" />
   <Project Path="NiWaterValveRemastered/NiWaterValve.csproj" />
