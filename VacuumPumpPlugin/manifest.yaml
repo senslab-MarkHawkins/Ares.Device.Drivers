@@ -1,0 +1,20 @@
+# ARES Device Driver Manifest
+# Target: Vacuum Pump Plugin
+
+# Basic Metadata
+device_type_name: "Vacuum Pump"
+driver_id: "vacuum_pump_plugin_v1"
+connection_type: "Serial"
+
+# The DLL that contains the VacuumPump and ViewModel classes
+assembly_name: "VacuumPumpPlugin.dll"
+
+# Serial connection specifics
+serial_settings:
+  requires_unit_id: false
+  variable_baud_rate: false
+  allowed_baud_rates: [9600]
+  default_baud_rate: 9600
+
+# Settings required when adding the device through the ARES UI
+settings: []

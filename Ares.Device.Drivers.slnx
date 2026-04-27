@@ -8,5 +8,6 @@
   <Project Path="TC0304Remastered/TC0304Remastered.csproj" />
   <Project Path="TicStepperController/TicStepperController.csproj" />
   <Project Path="ValveController/ValveController.csproj" />
+  <Project Path="VacuumPumpPlugin/VacuumPumpPlugin.csproj" />
   <Project Path="VerdiV6Laser/VerdiV6Laser.csproj" />
 </Solution>

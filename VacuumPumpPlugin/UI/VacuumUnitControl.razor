@@ -1,0 +1,45 @@
+@using VacuumPumpPlugin.UI
+@using Radzen
+@using Radzen.Blazor
+
+@inherits ReactiveUI.Blazor.ReactiveComponentBase<VacuumUnitControlViewModel>
+
+<div class="vacuum-container p-2">
+  <div class="vacuum-title font-weight-bold mb-2">
+    @ViewModel!.Device.Name
+  </div>
+
+  @if(ViewModel!.HasValidData)
+  {
+    <div class="vacuum-state">
+      <div class="d-flex justify-content-between mb-1">
+        <span class="field-descriptor">Status:</span>
+        <RadzenBadge BadgeStyle="@GetStatusBadgeStyle(ViewModel.VacuumState.PumpStatus)" Text="@ViewModel.VacuumState.PumpStatus" />
+      </div>
+      <div class="d-flex justify-content-between">
+        <span class="field-descriptor">Rotation Speed:</span>
+        <span>@ViewModel.VacuumState.RotationSpeed RPM</span>
+      </div>
+    </div>
+  }
+  else
+  {
+    <div class="d-flex align-items-center">
+      <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="width: 100%" />
+      <span class="ml-2">Connecting...</span>
+    </div>
+  }
+</div>
+
+@code {
+  private BadgeStyle GetStatusBadgeStyle(string status)
+  {
+    return status switch
+    {
+      "Normal" => BadgeStyle.Success,
+      "Fail" => BadgeStyle.Danger,
+      "Starting" or "Regulation" or "Breaking" => BadgeStyle.Warning,
+      _ => BadgeStyle.Info
+    };
+  }
+}
