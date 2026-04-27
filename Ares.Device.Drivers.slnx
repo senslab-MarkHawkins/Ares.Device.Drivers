@@ -4,10 +4,13 @@
   <Project Path="HerkulexDRS/HerkulexDRS.csproj" />
   <Project Path="LaserChillerRemastered/LaserChillerRemastered.csproj" />
   <Project Path="LindbergFurnaceRemastered/LindbergFurnaceRemastered.csproj" />
+  <Project Path="NiWaterValveRemastered/NiWaterValve.csproj" />
+  <Project Path="ShawHygrometer/ShawHygrometer.csproj" />
   <Project Path="SyringePumpNE1000Remastered/SyringePumpNE1000Remastered.csproj" />
   <Project Path="TC0304Remastered/TC0304Remastered.csproj" />
   <Project Path="TicStepperController/TicStepperController.csproj" />
   <Project Path="ValveController/ValveController.csproj" />
+  <Project Path="VacuumGaugeController/VacuumGaugeController.csproj" />
   <Project Path="VacuumPumpPlugin/VacuumPumpPlugin.csproj" />
   <Project Path="VerdiV6Laser/VerdiV6Laser.csproj" />
 </Solution>

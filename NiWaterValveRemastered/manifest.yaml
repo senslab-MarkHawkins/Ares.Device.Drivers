@@ -1,0 +1,7 @@
+device_type_name: "NI Water Valve"
+driver_id: "ni_water_valve_remastered_v1"
+connection_type: "USB"
+
+assembly_name: "NiWaterValve.dll"
+
+settings: []

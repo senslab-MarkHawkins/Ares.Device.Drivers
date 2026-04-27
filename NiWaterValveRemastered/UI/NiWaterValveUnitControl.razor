@@ -1,0 +1,28 @@
+@using NiWaterValve.UI
+@using Radzen
+@using Radzen.Blazor
+
+@inherits ReactiveUI.Blazor.ReactiveComponentBase<NiWaterValveUnitControlViewModel>
+
+<div class="water-valve-container m-0 p-2">
+    <div class="water-valve-title">
+        @ViewModel!.Device.Name
+    </div>
+
+    <div class="water-valve-state mt-2">
+        <div class="field-descriptor">Current Voltage</div>
+        <div class="voltage-value">@ViewModel!.State.ValveVoltage.ToString("F3") V</div>
+        
+        <div class="field-descriptor">Set Voltage</div>
+        <div class="d-flex gap-2">
+            <RadzenNumeric TValue="double" @bind-Value="@ViewModel!.TargetVoltage" ShowUpDown="false" class="w-100" />
+            <RadzenButton Icon="check" Click="@(() => ViewModel.SetVoltageCommand.Execute(ViewModel.TargetVoltage).Subscribe())" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+        </div>
+
+        <div class="field-descriptor">Quick Controls</div>
+        <div class="d-flex gap-2">
+            <RadzenButton Text="CLOSE (0V)" Click="@(() => ViewModel.SetVoltageCommand.Execute(0.0).Subscribe())" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" class="w-50" />
+            <RadzenButton Text="OPEN (5V)" Click="@(() => ViewModel.SetVoltageCommand.Execute(5.0).Subscribe())" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" class="w-50" />
+        </div>
+    </div>
+</div>
