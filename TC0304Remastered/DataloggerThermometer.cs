@@ -10,6 +10,7 @@ using UnitsNet;
 using TC0304Remastered.Commands;
 using TC0304Remastered.Connection;
 using TC0304Remastered.Simulation;
+using Microsoft.Extensions.Logging;
 
 namespace TC0304Remastered;
 
@@ -28,10 +29,12 @@ public sealed class DataloggerThermometer : AresDevice, IAsyncDisposable
   private bool _connected;
   private bool _disposed;
   private DataResponse? _latestResponse;
+  private readonly ILogger _logger;
 
-  public DataloggerThermometer(DeviceConnectionInfo info) : base(info)
+  public DataloggerThermometer(DeviceConnectionInfo info, ILogger logger) : base(info)
   {
     var serialInfo = info.SerialConnectionInfo ?? throw new InvalidOperationException("TC0304 requires serial connection info.");
+    _logger = logger;
     _connection = info.Simulated
       ? new SimDataloggerThermometerConnection(serialInfo.PortName)
       : new DataloggerThermometerConnection(serialInfo.PortName);

@@ -1,0 +1,39 @@
+.water-sensor-container {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 10px;
+    background: rgba(40, 44, 52, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.water-sensor-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #61dafb;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+
+.water-sensor-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.field-descriptor {
+    font-size: 0.85em;
+    color: #abb2bf;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.ppm-value {
+    font-size: 2em;
+    font-family: 'Consolas', monospace;
+    color: #98c379;
+    margin: 5px 0;
+}

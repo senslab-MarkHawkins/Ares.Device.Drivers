@@ -16,6 +16,7 @@ public class LindbergFurnaceConnection : AresHardwareConnection, ILindbergFurnac
     }
   )
   {
+    AttemptOpen();
     _unusedAddresses = new List<int>(Enumerable.Range(1, 247).ToArray());
     UnusedAddresses = new ReadOnlyCollection<int>(_unusedAddresses);
   }

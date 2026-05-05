@@ -9,11 +9,13 @@ namespace AlicatMFCRemastered.Simulation;
 
 public class AlicatBasisSim : IAlicatSim
 {
+  private const double MaxMassFlowStepSccm = 25;
+  private const double FullScaleSetpointSccm = 500;
   private readonly string[] _availableGases = { "Air", "Ar", "CO2", "N2", "O2", "N2O", "H2", "He", "CH4" };
   private readonly Action<byte[]> _byteSender;
   private readonly CancellationTokenSource _generalCancellationTokenSource = new();
-  private readonly StandardVolumeFlow _flowBase = StandardVolumeFlow.FromStandardLitersPerMinute(8000);
-  private readonly StandardVolumeFlow _totalizer = StandardVolumeFlow.FromStandardLitersPerMinute(0);
+  private readonly StandardVolumeFlow _flowBase = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(200);
+  private readonly StandardVolumeFlow _totalizer = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(0);
   private readonly ISet<MfcStatusCode> _statusCodes = new HashSet<MfcStatusCode>();
   private readonly Temperature _temperatureBase = Temperature.FromDegreesCelsius(40);
   private readonly float _valveDriveBase = 0;
@@ -22,7 +24,7 @@ public class AlicatBasisSim : IAlicatSim
 
   private StandardVolumeFlow _massFlow;
   private bool _processingCommand;
-  private StandardVolumeFlow _setpoint = StandardVolumeFlow.FromStandardLitersPerMinute(8000);
+  private StandardVolumeFlow _setpoint = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(200);
   private float _valveDrive;
   private CancellationTokenSource _streamingTokenSource = new();
   private Temperature _temperature;
@@ -34,7 +36,7 @@ public class AlicatBasisSim : IAlicatSim
     DeviceId = id;
     var random = new Random();
     _temperature = Temperature.FromDegreesCelsius(_temperatureBase.DegreesCelsius + random.Next(-10, 10));
-    _massFlow = StandardVolumeFlow.FromStandardLitersPerMinute(_flowBase.StandardLitersPerMinute + random.Next(-10, 10));
+    _massFlow = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(_flowBase.StandardCubicCentimetersPerMinute + random.Next(-10, 10));
     _valveDrive = _valveDriveBase;
     Start();
   }
@@ -223,7 +225,7 @@ public class AlicatBasisSim : IAlicatSim
       return;
     }
 
-    _setpoint = StandardVolumeFlow.FromStandardLitersPerMinute(setpoint);
+    _setpoint = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(setpoint);
 
     SendDataFrame();
   }
@@ -294,11 +296,18 @@ public class AlicatBasisSim : IAlicatSim
 
   private void RandomizeData()
   {
-    var random = new Random();
+    var random = Random.Shared;
     _temperature = Temperature.FromDegreesCelsius(_temperatureBase.DegreesCelsius + random.Next(-10, 10));
-    _massFlow = StandardVolumeFlow.FromStandardLitersPerMinute(_flowBase.StandardLitersPerMinute + random.Next(-10, 10));
+    var setpointSccm = _setpoint.StandardCubicCentimetersPerMinute;
+    var currentMassFlowSccm = _massFlow.StandardCubicCentimetersPerMinute;
+    var massFlowDeltaSccm = setpointSccm - currentMassFlowSccm;
+    var easedMassFlowSccm = currentMassFlowSccm + Math.Clamp(massFlowDeltaSccm, -MaxMassFlowStepSccm, MaxMassFlowStepSccm);
+    var jitterRangeSccm = Math.Max(Math.Abs(setpointSccm) * 0.02, 0.5);
+    var massFlowSccm = easedMassFlowSccm + ((random.NextDouble() * 2) - 1) * jitterRangeSccm;
+
+    _massFlow = StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(massFlowSccm);
     if(!_statusCodes.Contains(MfcStatusCode.Hld))
-      _valveDrive = random.Next(1, 99);
+      _valveDrive = (float)Math.Clamp(setpointSccm / FullScaleSetpointSccm * 100, 0, 100);
   }
 
   private void SendDataFrame()

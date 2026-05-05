@@ -3,6 +3,7 @@ using Ares.Datamodel.Device;
 using Ares.Datamodel.Factories;
 using Ares.Device;
 using Ares.Toolkit.Serial;
+using Microsoft.Extensions.Logging;
 using System.IO.Ports;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -18,15 +19,20 @@ public class TicStepper : AresDevice, ITicStepperController
   private readonly IAresSerialConnection _connection;
   private Task _stateUpdater = Task.CompletedTask;
   private CancellationTokenSource _stateUpdaterCancellation = new();
+  private readonly ILogger _logger;
 
-  public TicStepper(DeviceConnectionInfo connectionInfo) : base(connectionInfo)
+  public TicStepper(DeviceConnectionInfo connectionInfo, ILogger logger) : base(connectionInfo)
   {
+    _logger = logger;
     var serialInfo = connectionInfo.SerialConnectionInfo;
     if(connectionInfo.Simulated)
       _connection = new SimTicConnection(serialInfo.PortName);
     
     else
+    {
       _connection = new AresHardwareConnection(new SerialPortConnectionInfo(9600, Parity.None, 8, StopBits.One), serialInfo.PortName);
+      _connection.AttemptOpen();
+    }
 
     RawSettings = connectionInfo.DeviceSettings;
     StateStream = _stateSubject.AsObservable();

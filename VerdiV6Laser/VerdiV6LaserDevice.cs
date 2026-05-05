@@ -2,6 +2,7 @@ using Ares.Datamodel;
 using Ares.Datamodel.Device;
 using Ares.Datamodel.Factories;
 using Ares.Device;
+using Microsoft.Extensions.Logging;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using VerdiV6Laser.Commands;
@@ -14,9 +15,11 @@ public class VerdiV6LaserDevice : AresDevice, IVerdiV6Laser
 {
   private readonly BehaviorSubject<AresStruct> _stateSubject = new(new AresStruct());
   private readonly ILaserConnection _connection;
+  private readonly ILogger _logger;
 
-  public VerdiV6LaserDevice(DeviceConnectionInfo connectionInfo) : base(connectionInfo)
+  public VerdiV6LaserDevice(DeviceConnectionInfo connectionInfo, ILogger logger) : base(connectionInfo)
   {
+    _logger = logger;
     var serialInfo = connectionInfo.SerialConnectionInfo;
     
     if (connectionInfo.Simulated)
@@ -26,6 +29,7 @@ public class VerdiV6LaserDevice : AresDevice, IVerdiV6Laser
     else
     {
       _connection = new LaserConnection(serialInfo.PortName);
+      _connection.AttemptOpen();
     }
     
     UpdateState();

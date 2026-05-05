@@ -18,6 +18,7 @@ public class MassFlowControllerConnection : AresHardwareConnection, IMfcConnecti
   {
     _unusedIds = new List<char>(Enumerable.Range('A', 25).Select(id => (char)id).ToArray());
     UnusedIds = new ReadOnlyCollection<char>(_unusedIds);
+    AttemptOpen();
   }
 
   public IEnumerable<char> UnusedIds { get; }

@@ -63,7 +63,7 @@ public partial class MfcUnitControlViewModel : DeviceUnitControlViewModel<MassFl
     if(!TargetSetpoint.HasValue)
       return;
 
-    await Device.NewSetpoint(StandardVolumeFlow.FromStandardLitersPerMinute(TargetSetpoint.Value));
+    await Device.NewSetpoint(StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(TargetSetpoint.Value));
   }
 
   [Reactive]

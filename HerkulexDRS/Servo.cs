@@ -9,6 +9,7 @@ using HerkulexDRS.Connection;
 using HerkulexDRS.Enums;
 using HerkulexDRS.Responses;
 using HerkulexDRS.Simulation;
+using Microsoft.Extensions.Logging;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
@@ -19,10 +20,12 @@ public class Servo : AresDevice, IServo
   private readonly BehaviorSubject<AresStruct> _stateSubject = new(new AresStruct());
   private readonly IServoConnection _connection;
   private int _servoId;
+  private readonly ILogger _logger;
 
-  public Servo(DeviceConnectionInfo connectionInfo) : base(connectionInfo)
+  public Servo(DeviceConnectionInfo connectionInfo, ILogger logger) : base(connectionInfo)
   {
     _servoId = (int)(connectionInfo.DeviceSettings.Fields.GetValueOrDefault("ServoId")?.NumberValue ?? 1);
+    _logger = logger;
     
     var serialInfo = connectionInfo.SerialConnectionInfo;
     if(connectionInfo.Simulated)

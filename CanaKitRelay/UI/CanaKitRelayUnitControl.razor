@@ -1,0 +1,43 @@
+@using CanaKitRelay.UI
+@using Radzen
+@using Radzen.Blazor
+
+@inherits ReactiveUI.Blazor.ReactiveComponentBase<CanaKitRelayUnitControlViewModel>
+
+<div class="relay-container m-0 p-2">
+    <div class="relay-title">
+        @ViewModel!.Device.Name
+    </div>
+
+    <div class="relay-state mt-2">
+        <div class="field-descriptor">Operational Mode</div>
+        <div class="mode-value @(ViewModel!.State.Bypass ? "mode-bypass" : "mode-vacuum")">
+            @(ViewModel!.State.Bypass ? "BYPASS" : "FULL VACUUM")
+        </div>
+
+        <div class="d-flex gap-2 mt-2">
+            <RadzenButton Text="BYPASS" Click="@(() => ViewModel.SetBypassCommand.Execute().Subscribe())" 
+                          ButtonStyle="ButtonStyle.Secondary" class="w-50" 
+                          Disabled="@ViewModel!.State.Bypass" />
+            <RadzenButton Text="FULL VAC" Click="@(() => ViewModel.SetFullVacuumCommand.Execute().Subscribe())" 
+                          ButtonStyle="ButtonStyle.Primary" class="w-50" 
+                          Disabled="@(!ViewModel!.State.Bypass)" />
+        </div>
+
+        <div class="field-descriptor mt-3">Individual Relays</div>
+        <div class="d-flex justify-content-between align-items-center p-2 relay-row">
+            <span>Relay 1</span>
+            <RadzenToggleButton Click="@(() => ViewModel.ToggleRelay1Command.Execute().Subscribe())" 
+                                Value="@ViewModel!.State.Relay1On" 
+                                ButtonStyle="ButtonStyle.Info" 
+                                ToggleButtonStyle="ButtonStyle.Light" />
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-2 relay-row">
+            <span>Relay 2</span>
+            <RadzenToggleButton Click="@(() => ViewModel.ToggleRelay2Command.Execute().Subscribe())" 
+                                Value="@ViewModel!.State.Relay2On" 
+                                ButtonStyle="ButtonStyle.Info" 
+                                ToggleButtonStyle="ButtonStyle.Light" />
+        </div>
+    </div>
+</div>

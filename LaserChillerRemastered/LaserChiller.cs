@@ -8,6 +8,7 @@ using LaserChillerRemastered.Commands.Requests;
 using LaserChillerRemastered.Commands.Responses;
 using LaserChillerRemastered.Connection;
 using LaserChillerRemastered.Simulation;
+using Microsoft.Extensions.Logging;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -24,11 +25,14 @@ public sealed class LaserChiller : AresDevice, IAsyncDisposable
   private Task _pollingTask = Task.CompletedTask;
   private bool _connected;
   private bool _disposed;
+  private readonly ILogger _logger;
 
-  public LaserChiller(DeviceConnectionInfo connectionInfo) : base(connectionInfo)
+  public LaserChiller(DeviceConnectionInfo connectionInfo, ILogger logger) : base(connectionInfo)
   {
     var serialInfo = connectionInfo.SerialConnectionInfo
       ?? throw new InvalidOperationException("Laser chiller requires serial connection information.");
+
+    _logger = logger;
 
     _serialConnection = connectionInfo.Simulated
       ? new SimLaserChillerConnection(serialInfo.PortName)

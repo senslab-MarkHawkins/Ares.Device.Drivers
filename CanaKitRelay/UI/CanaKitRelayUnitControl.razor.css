@@ -1,0 +1,59 @@
+.relay-container {
+    background: rgba(40, 44, 52, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.relay-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #61dafb;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+
+.relay-state {
+    display: flex;
+    flex-direction: column;
+}
+
+.field-descriptor {
+    font-size: 0.8em;
+    color: #abb2bf;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.mode-value {
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.mode-bypass {
+    color: #d19a66;
+    background: rgba(209, 154, 102, 0.1);
+    border: 1px solid rgba(209, 154, 102, 0.3);
+}
+
+.mode-vacuum {
+    color: #98c379;
+    background: rgba(152, 195, 121, 0.1);
+    border: 1px solid rgba(152, 195, 121, 0.3);
+}
+
+.relay-row {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+.relay-row span {
+    font-size: 0.9em;
+    color: #abb2bf;
+}

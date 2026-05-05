@@ -13,5 +13,6 @@ public class ValveControllerConnection : AresHardwareConnection, IValveControlle
     }
   )
   {
+    AttemptOpen();
   }
 }

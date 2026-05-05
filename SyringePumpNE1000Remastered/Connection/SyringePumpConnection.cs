@@ -14,5 +14,6 @@ public sealed class SyringePumpConnection : AresHardwareConnection, ISyringePump
         SendBuffer = TimeSpan.FromMilliseconds(50)
       })
   {
+    AttemptOpen();
   }
 }

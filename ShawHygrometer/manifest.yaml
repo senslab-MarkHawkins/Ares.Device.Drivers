@@ -1,0 +1,13 @@
+device_type_name: "Shaw Superdew Hygrometer"
+driver_id: "shaw_superdew_water_remastered_v1"
+connection_type: "Serial"
+
+assembly_name: "ShawHygrometer.dll"
+
+serial_settings:
+  requires_unit_id: false
+  variable_baud_rate: false
+  allowed_baud_rates: [9600]
+  default_baud_rate: 9600
+
+settings: []

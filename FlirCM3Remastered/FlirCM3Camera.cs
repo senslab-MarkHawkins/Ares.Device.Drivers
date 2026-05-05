@@ -4,6 +4,7 @@ using Ares.Datamodel.Extensions;
 using Ares.Datamodel.Factories;
 using Ares.Device;
 using FlirCM3Remastered.Camera;
+using Microsoft.Extensions.Logging;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
@@ -18,14 +19,16 @@ public sealed class FlirCM3Camera : AresDevice, IAsyncDisposable
   private readonly string _simulationPreviewPath;
   private bool _activated;
   private bool _disposed;
+  private readonly ILogger _logger;
 
-  public FlirCM3Camera(DeviceConnectionInfo info) : base(info)
+  public FlirCM3Camera(DeviceConnectionInfo info, ILogger logger) : base(info)
   {
     var assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
       ?? AppContext.BaseDirectory;
 
     _simulationImagePath = Path.Combine(assemblyDirectory, "Simulation", "test_result.tiff");
     _simulationPreviewPath = Path.Combine(assemblyDirectory, "Simulation", "test_baseline.png");
+    _logger = logger;
     _backend = info.Simulated
       ? new SimFlirCM3Backend(_simulationImagePath, _simulationPreviewPath)
       : new FlirCM3HardwareBackend();

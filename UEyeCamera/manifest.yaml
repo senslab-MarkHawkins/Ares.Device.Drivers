@@ -1,0 +1,11 @@
+device_type_name: "uEye Camera"
+driver_id: "ueye_camera_v1"
+connection_type: "USB"
+
+assembly_name: "UEyeCamera.dll"
+
+settings:
+  - key: "CameraId"
+    display_name: "Camera ID / Device ID"
+    type: "number"
+    description: "The ID assigned to the camera in IDS Camera Manager."

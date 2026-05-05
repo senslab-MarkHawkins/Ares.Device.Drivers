@@ -1,0 +1,16 @@
+@using ShawHygrometer.UI
+@using Radzen
+@using Radzen.Blazor
+
+@inherits ReactiveUI.Blazor.ReactiveComponentBase<ShawSuperdewUnitControlViewModel>
+
+<div class="water-sensor-container m-0 p-2">
+    <div class="water-sensor-title">
+        @ViewModel!.Device.Name
+    </div>
+
+    <div class="water-sensor-state mt-2">
+        <div class="field-descriptor">Water PPM</div>
+        <div class="ppm-value">@ViewModel!.State.WaterPpm.ToString("F2")</div>
+    </div>
+</div>
