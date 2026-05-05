@@ -1,6 +1,5 @@
 using Ares.Datamodel;
 using Ares.Datamodel.Device;
-using Ares.Datamodel.Extensions;
 using Ares.Datamodel.Factories;
 using Ares.Device;
 using Ares.Toolkit.Serial;
@@ -10,7 +9,6 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using TicStepperController.Commands;
 using TicStepperController.Enums;
-using TicStepperController.Responses;
 using TicStepperController.Simulation;
 
 namespace TicStepperController;
@@ -36,24 +34,100 @@ public class TicStepper : AresDevice, ITicStepperController
       _connection.AttemptOpen();
     }
 
-    LoadSettings(connectionInfo.DeviceSettings);
+    RawSettings = connectionInfo.DeviceSettings;
     StateStream = _stateSubject.AsObservable();
+
+    StateSchema = AresSchemaBuilder.Empty()
+    .AddEntry("OperationState", AresSchemaBuilder.StringEntry().Build())
+    .AddEntry("CurrentPosition", AresSchemaBuilder.NumberEntry().Build())
+    .AddEntry("TargetPosition", AresSchemaBuilder.NumberEntry().Build())
+    .AddEntry("StepMode", AresSchemaBuilder.StringEntry().Build())
+    .AddEntry("MaxAcceleration", AresSchemaBuilder.NumberEntry().Build())
+    .AddEntry("MaxDeceleration", AresSchemaBuilder.NumberEntry().Build())
+    .AddEntry("MaxSpeed", AresSchemaBuilder.NumberEntry().Build())
+    .AddEntry("CurrentLimit", AresSchemaBuilder.NumberEntry().Build())
+    .AddEntry("CustomStepSize", AresSchemaBuilder.NumberEntry().Build())
+    .AddEntry("StartingSpeed", AresSchemaBuilder.NumberEntry().Build())
+    .AddEntry("MiscFlags", AresSchemaBuilder.Entry(AresDataType.Struct)
+        .WithStructSchema(flags =>
+        {
+          flags.Fields.Add("Energized", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          flags.Fields.Add("PositionUncertain", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          flags.Fields.Add("ForwardLimitActive", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          flags.Fields.Add("ReverseLimitActive", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          flags.Fields.Add("HomingActive", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+        })
+        .Build())
+    .AddEntry("Errors", AresSchemaBuilder.Entry(AresDataType.Struct)
+        .WithStructSchema(errors =>
+        {
+          errors.Fields.Add("IntentionallyDeEnergized", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          errors.Fields.Add("MotorDriverError", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          errors.Fields.Add("LowVin", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          errors.Fields.Add("KillSwitchActive", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          errors.Fields.Add("RequiredInputsInvalid", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          errors.Fields.Add("SerialError", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          errors.Fields.Add("CommandTimeout", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          errors.Fields.Add("SafeStartViolation", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+          errors.Fields.Add("ErrLineHigh", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+        })
+        .Build())
+    .Build();
   }
 
-  private void LoadSettings(AresStruct settings)
+  private async Task LoadAndApplySettings()
   {
-    UserStepSize = (uint)(settings.Fields.GetValueOrDefault("CustomStepSize")?.NumberValue ?? 1);
-    SmartStepCalculation = settings.Fields.GetValueOrDefault("DynamicStepCalculation")?.BoolValue ?? false;
-    InitialSpoolRadius = settings.Fields.GetValueOrDefault("SpoolRadius")?.NumberValue;
-    FilterPaperThickness = settings.Fields.GetValueOrDefault("FilterPaperThickness")?.NumberValue;
-    IdealLinearStepSize = settings.Fields.GetValueOrDefault("IdealLinearStepSize")?.NumberValue;
-    StepAngle = settings.Fields.GetValueOrDefault("StepAngle")?.NumberValue ?? 1.8;
+    MaxAcceleration = (uint)(RawSettings.Fields.GetValueOrDefault("MaxAcceleration")?.NumberValue ?? 0);
+    MaxDecceleration = (uint)(RawSettings.Fields.GetValueOrDefault("MaxDecceleration")?.NumberValue ?? 0);
+    MaxSpeed = (uint)(RawSettings.Fields.GetValueOrDefault("MaxSpeed")?.NumberValue ?? 0);
+    StartingSpeed = (uint)(RawSettings.Fields.GetValueOrDefault("StartingSpeed")?.NumberValue ?? 0);
+    CurrentStepMode = ParseStepMode(RawSettings.Fields.GetValueOrDefault("StepMode")?.StringValue ?? "");
+    UserStepSize = (uint)(RawSettings.Fields.GetValueOrDefault("CustomStepSize")?.NumberValue ?? 1);
+    SmartStepCalculation = RawSettings.Fields.GetValueOrDefault("DynamicStepCalculation")?.BoolValue ?? false;
+
+
+    if(MaxAcceleration > 0)
+      await _connection.Send(new SetMaxAccelerationCommand(MaxAcceleration));
+
+    if(MaxDecceleration > 0)
+      await _connection.Send(new SetMaxDecelerationCommand(MaxDecceleration));
+
+    if(MaxSpeed > 0)
+      await _connection.Send(new SetMaxSpeedCommand(MaxSpeed));
+
+    if(StartingSpeed > 0)
+      await _connection.Send(new SetStartingSpeedCommand(StartingSpeed));
+
+    if(CurrentLimit > 0)
+      await _connection.Send(new SetCurrentLimitCommand(CurrentLimit));
+
+    await _connection.Send(new SetStepModeCommand(CurrentStepMode));
+
+    if(SmartStepCalculation)
+    {
+      InitialSpoolRadius = RawSettings.Fields.GetValueOrDefault("SpoolRadius")?.NumberValue;
+      FilterPaperThickness = RawSettings.Fields.GetValueOrDefault("FilterPaperThickness")?.NumberValue;
+      IdealLinearStepSize = RawSettings.Fields.GetValueOrDefault("IdealLinearStepSize")?.NumberValue;
+      StepAngle = RawSettings.Fields.GetValueOrDefault("StepAngle")?.NumberValue ?? 1.8;
+      CalculateMicroStepAngle();
+    }
+  }
+
+  private StepMode ParseStepMode(string settingsVal)
+  {
+    var parsed = Enum.TryParse<StepMode>(settingsVal, out var stepMode);
+
+    if(!parsed)
+      return StepMode.Step1_2;
+
+    return stepMode;
   }
 
   public override async Task<bool> Activate(CancellationToken ct)
   {
     try
     {
+      await LoadAndApplySettings();
       await _connection.Send(new ExitSafeStartCommand());
       await UpdateStateFromDevice();
       StartStateUpdater();
@@ -95,60 +169,68 @@ public class TicStepper : AresDevice, ITicStepperController
 
   private async Task UpdateStateFromDevice()
   {
-    var opState = await _connection.Send(new GetOperationStateRequest());
-    var pos = await _connection.Send(new GetCurrentPositionRequest());
-    var target = await _connection.Send(new GetTargetPositionRequest());
-    var flags = await _connection.Send(new GetMiscFlagsRequest());
-    var errorsResponse = await _connection.Send(new GetErrorStatusRequest());
-    var mode = await _connection.Send(new GetStepModeRequest());
-    var maxAcceleration = await _connection.Send(new GetMaxAccelerationRequest());
-    var maxDeceleration = await _connection.Send(new GetMaxDecelerationRequest());
-    var maxSpeed = await _connection.Send(new GetMaxSpeedRequest());
-    var limit = await _connection.Send(new GetCurrentLimitRequest());
-    var startingSpeed = await _connection.Send(new GetStartingSpeedRequest());
-    var stepMode = await _connection.Send(new GetStepModeRequest());
+    try
+    {
+      var opState = await _connection.Send(new GetOperationStateRequest());
+      var pos = await _connection.Send(new GetCurrentPositionRequest());
+      var target = await _connection.Send(new GetTargetPositionRequest());
+      var flags = await _connection.Send(new GetMiscFlagsRequest());
+      var errorsResponse = await _connection.Send(new GetErrorStatusRequest());
+      var mode = await _connection.Send(new GetStepModeRequest());
+      var maxAcceleration = await _connection.Send(new GetMaxAccelerationRequest());
+      var maxDeceleration = await _connection.Send(new GetMaxDecelerationRequest());
+      var maxSpeed = await _connection.Send(new GetMaxSpeedRequest());
+      var limit = await _connection.Send(new GetCurrentLimitRequest());
+      var startingSpeed = await _connection.Send(new GetStartingSpeedRequest());
+      var stepMode = await _connection.Send(new GetStepModeRequest());
 
-    CalculateMicroStepAngle(mode.StepMode);
-    if(SmartStepCalculation) 
-      CalculateCurrentRadius();
+      CalculateMicroStepAngle();
+      if(SmartStepCalculation)
+        CalculateCurrentRadius();
 
-    var next = AresStateBuilder.From(_stateSubject.Value)
-      .Add("OperationState", opState.State.ToString())
-      .Add("CurrentPosition", pos.Position)
-      .Add("TargetPosition", target.Position)
-      .Add("StepMode", mode.StepMode.ToString())
-      .Add("MaxAcceleration", maxAcceleration.Value)
-      .Add("MaxDeceleration", maxDeceleration.Value)
-      .Add("MaxSpeed", maxSpeed.Value)
-      .Add("CurrentLimit", limit.Value)
-      .Add("CustomStepSize", UserStepSize)
-      .Add("StepMode", stepMode.StepMode.ToString())
-      .Add("StartingSpeed", startingSpeed.Value)
-      .AddStruct("MiscFlags", miscFlags => miscFlags
-        .Add("Energized", flags.Energized)
-        .Add("PositionUncertain", flags.PositionUncertain)
-        .Add("ForwardLimitActive", flags.ForwardLimitActive)
-        .Add("ReverseLimitActive", flags.ReverseLimitActive)
-        .Add("HomingActive", flags.HomingActive))
-      .AddStruct("Errors", errors => errors
-        .Add("IntentionallyDeEnergized", errorsResponse.IntentionallyDeEnergized)
-        .Add("MotorDriverError", errorsResponse.MotorDriverError)
-        .Add("LowVin", errorsResponse.LowVin)
-        .Add("KillSwitchActive", errorsResponse.KillSwitchActive)
-        .Add("RequiredInputsInvalid", errorsResponse.RequiredInputInvalid)
-        .Add("SerialError", errorsResponse.SerialError)
-        .Add("CommandTimeout", errorsResponse.CommandTimeout)
-        .Add("SafeStartViolation", errorsResponse.SafeStartViolation)
-        .Add("ErrLineHigh", errorsResponse.ErrLineHigh))
-      .Build();
+      var next = AresStateBuilder.From(_stateSubject.Value)
+        .Add("OperationState", opState.State.ToString())
+        .Add("CurrentPosition", pos.Position)
+        .Add("TargetPosition", target.Position)
+        .Add("StepMode", mode.StepMode.ToString())
+        .Add("MaxAcceleration", maxAcceleration.Value)
+        .Add("MaxDeceleration", maxDeceleration.Value)
+        .Add("MaxSpeed", maxSpeed.Value)
+        .Add("CurrentLimit", limit.Value)
+        .Add("CustomStepSize", UserStepSize)
+        .Add("StepMode", stepMode.StepMode.ToString())
+        .Add("StartingSpeed", startingSpeed.Value)
+        .AddStruct("MiscFlags", miscFlags => miscFlags
+          .Add("Energized", flags.Energized)
+          .Add("PositionUncertain", flags.PositionUncertain)
+          .Add("ForwardLimitActive", flags.ForwardLimitActive)
+          .Add("ReverseLimitActive", flags.ReverseLimitActive)
+          .Add("HomingActive", flags.HomingActive))
+        .AddStruct("Errors", errors => errors
+          .Add("IntentionallyDeEnergized", errorsResponse.IntentionallyDeEnergized)
+          .Add("MotorDriverError", errorsResponse.MotorDriverError)
+          .Add("LowVin", errorsResponse.LowVin)
+          .Add("KillSwitchActive", errorsResponse.KillSwitchActive)
+          .Add("RequiredInputsInvalid", errorsResponse.RequiredInputInvalid)
+          .Add("SerialError", errorsResponse.SerialError)
+          .Add("CommandTimeout", errorsResponse.CommandTimeout)
+          .Add("SafeStartViolation", errorsResponse.SafeStartViolation)
+          .Add("ErrLineHigh", errorsResponse.ErrLineHigh))
+        .Build();
 
-    _stateSubject.OnNext(next);
+      _stateSubject.OnNext(next);
+    }
+
+    catch(Exception e)
+    {
+      Console.WriteLine($"Something bad happened: {e.Message}");
+    }
   }
 
-  private void CalculateMicroStepAngle(StepMode stepMode)
+  private void CalculateMicroStepAngle()
   {
     double angle = StepAngle;
-    MicroStepAngle = stepMode switch
+    MicroStepAngle = CurrentStepMode switch
     {
       StepMode.Step1_2 => angle / 2.0,
       StepMode.Step1_4 => angle / 4.0,
@@ -173,8 +255,8 @@ public class TicStepper : AresDevice, ITicStepperController
 
   public override async Task UpdateSettings(AresStruct settings)
   {
-    LoadSettings(settings);
-    await Task.CompletedTask;
+    RawSettings = settings;
+    await LoadAndApplySettings();
   }
 
   public override Task<AresStruct> GetSettings()
@@ -304,6 +386,12 @@ public class TicStepper : AresDevice, ITicStepperController
     _stateSubject.OnCompleted();
   }
 
+  public uint MaxAcceleration { get; private set; }
+  public uint MaxDecceleration { get; private set;  }
+  public uint MaxSpeed { get; private set;  }
+  public uint StartingSpeed { get; private set; }
+  public StepMode CurrentStepMode { get; private set; }
+  public uint CurrentLimit { get; private set; }
   public uint UserStepSize { get; private set; } = 1;
   public bool SmartStepCalculation { get; private set; }
   public double? InitialSpoolRadius { get; private set; }
@@ -314,4 +402,5 @@ public class TicStepper : AresDevice, ITicStepperController
   public double TotalSpoolDisplacementInMicrosteps { get; private set; } = 0;
   public double MicroStepAngle { get; private set; }
   public override IObservable<AresStruct> StateStream { get; }
+  public AresStruct RawSettings { get; private set; }
 }

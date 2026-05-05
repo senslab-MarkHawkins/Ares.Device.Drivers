@@ -1,5 +1,4 @@
 using Ares.Toolkit.Serial.Commands;
-using CanaKitRelay.Commands.Responses;
 using System.Text.RegularExpressions;
 
 namespace CanaKitRelay.Commands.Responses.Parsers;

@@ -1,12 +1,10 @@
 using Ares.Datamodel;
 using Ares.Datamodel.Device;
-using Ares.Datamodel.Extensions;
 using Ares.Datamodel.Factories;
 using Ares.Device;
 using Ares.Toolkit.Serial;
 using Lambda103Shutter.Commands;
 using Lambda103Shutter.Commands.Requests;
-using Lambda103Shutter.Commands.Responses;
 using Lambda103Shutter.Simulation;
 using Microsoft.Extensions.Logging;
 using System.Reactive.Disposables;

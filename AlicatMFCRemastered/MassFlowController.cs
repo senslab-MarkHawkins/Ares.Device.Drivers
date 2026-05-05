@@ -43,7 +43,6 @@ public class MassFlowController : AresDevice, IMassFlowController
   {
     HasValve = connectionInfo.DeviceSettings.Fields["HasValve"]?.BoolValue ?? false;
     _mfcType = connectionInfo.DeviceSettings.Fields["IsBasis"].BoolValue ? MfcTypeEnum.Basis2 : MfcTypeEnum.Normal;
-
     _logger = logger;
     StateStream = _stateSubject.AsObservable();
     var serialInfo = connectionInfo.SerialConnectionInfo;
@@ -66,6 +65,42 @@ public class MassFlowController : AresDevice, IMassFlowController
     };
 
     _expectedDataFormatEntryCount = _mfcType == MfcTypeEnum.Normal ? 12 : 7;
+    
+    StateSchema = AresSchemaBuilder.Empty()
+    .AddEntry("Id", AresSchemaBuilder.StringEntry().Build())
+    .AddEntry("Name", AresSchemaBuilder.StringEntry().Build())
+    .AddEntry("HasValve", AresSchemaBuilder.Entry(AresDataType.Boolean).Build())
+    .AddEntry("Firmware", AresSchemaBuilder.StringEntry().Build())
+    .AddEntry("LiveData", AresSchemaBuilder.Entry(AresDataType.Struct)
+        .WithStructSchema(liveData =>
+        {
+          liveData.Fields.Add("Temperature", AresSchemaBuilder.NumberEntry().Build());
+          liveData.Fields.Add("MassFlow", AresSchemaBuilder.NumberEntry().Build());
+          liveData.Fields.Add("Setpoint", AresSchemaBuilder.NumberEntry().Build());
+
+          // Note: These are marked as Optional because they are conditional in your StateBuilder
+          liveData.Fields.Add("AbsolutePressure", AresSchemaBuilder.NumberEntry().AsOptional().Build());
+          liveData.Fields.Add("VolumetricFlow", AresSchemaBuilder.NumberEntry().AsOptional().Build());
+          liveData.Fields.Add("ValveDrive", AresSchemaBuilder.NumberEntry().AsOptional().Build());
+
+          // The StatusCodes List (List of Strings)
+          liveData.Fields.Add("StatusCodes", AresSchemaBuilder.Entry(AresDataType.List)
+              .WithListElementSchema(AresDataType.String)
+              .Build());
+        })
+        .Build())
+    .AddEntry("Gases", AresSchemaBuilder.Entry(AresDataType.List)
+        .WithListElementSchema(element => {
+          element.WithStructSchema(gasStruct => {
+            gasStruct.Fields.Add("Gas", AresSchemaBuilder.StringEntry().Build());
+            gasStruct.Fields.Add("Index", AresSchemaBuilder.NumberEntry().Build());
+            gasStruct.Fields.Add("IsEndMarker", AresSchemaBuilder.Entry(AresDataType.Boolean).Build());
+            gasStruct.Fields.Add("Id", AresSchemaBuilder.NumberEntry().Build());
+            gasStruct.Fields.Add("RequestId", AresSchemaBuilder.StringEntry().Build());
+          });
+        })
+        .Build())
+    .Build();
   }
 
   public async Task<bool> QueryManufacturerInfo()
