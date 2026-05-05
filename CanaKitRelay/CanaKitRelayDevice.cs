@@ -1,7 +1,5 @@
 using Ares.Datamodel;
 using Ares.Datamodel.Device;
-using Ares.Datamodel.Extensions;
-using Ares.Datamodel.Factories;
 using Ares.Device;
 using Ares.Toolkit.Serial;
 using CanaKitRelay.Commands.Requests;
@@ -9,7 +7,6 @@ using CanaKitRelay.Commands.Responses;
 using CanaKitRelay.Enums;
 using CanaKitRelay.Simulation;
 using Microsoft.Extensions.Logging;
-using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
