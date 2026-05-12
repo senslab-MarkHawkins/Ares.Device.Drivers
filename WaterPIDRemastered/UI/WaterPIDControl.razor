@@ -1,0 +1,60 @@
+@using WaterPIDRemastered.UI
+@using Radzen
+@using Radzen.Blazor
+
+@inherits ReactiveUI.Blazor.ReactiveComponentBase<WaterPIDControlViewModel>
+
+<div class="wp-container m-0 p-0">
+    <div class="wp-header mb-3">
+        <div class="wp-title">@ViewModel!.Device.Name</div>
+        <div class="wp-status">
+            @switch (ViewModel.DeviceState.Status)
+            {
+                case "ACTIVE":
+                    <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="ACTIVE" />
+                    break;
+                case "READY":
+                    <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="READY" />
+                    break;
+                default:
+                    <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="@ViewModel.DeviceState.Status" />
+                    break;
+            }
+        </div>
+    </div>
+
+    @if (ViewModel.HasValidData)
+    {
+        <div class="wp-grid">
+            <div class="field-label">Target PPM</div>
+            <div class="field-value">@($"{ViewModel.DeviceState.TargetPPM:F1} PPM")</div>
+
+            <div class="field-label">Calculated Voltage</div>
+            <div class="field-value">@($"{ViewModel.DeviceState.CalculatedOutput:F3} V")</div>
+        </div>
+
+        <div class="wp-contributions mt-3 p-2 border rounded bg-light">
+            <div class="small text-muted mb-1">PID Contributions</div>
+            <div class="d-flex justify-content-between small">
+                <span>P: @ViewModel.DeviceState.ProportionalContribution.ToString("F4")</span>
+                <span>I: @ViewModel.DeviceState.IntegralContribution.ToString("F4")</span>
+                <span>D: @ViewModel.DeviceState.DerivativeContribution.ToString("F4")</span>
+            </div>
+        </div>
+
+        <div class="wp-actions mt-3">
+            <div class="d-flex gap-2">
+                <RadzenNumeric @bind-Value="@ViewModel.NewTarget" TValue="double" Step="1.0" Class="w-100" />
+                <RadzenButton Text="Set" Click="@(() => ViewModel.SetTargetCommand.Execute(ViewModel.NewTarget).Subscribe())" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+            </div>
+            <RadzenButton Text="Reset" Click="@(() => ViewModel.ResetCommand.Execute().Subscribe())" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" class="mt-2 w-100" />
+        </div>
+    }
+    else
+    {
+        <div class="d-flex align-items-center gap-2">
+            <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" />
+            <span>Initializing...</span>
+        </div>
+    }
+</div>

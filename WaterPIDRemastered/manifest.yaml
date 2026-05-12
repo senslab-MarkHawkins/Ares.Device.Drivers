@@ -1,0 +1,54 @@
+# ARES Device Driver Manifest
+# Target: Water PPM PID Controller (Remastered)
+
+# Basic Metadata
+device_type_name: "Water PID Controller"
+driver_id: "water_pid_remastered_v1"
+connection_type: "None" # Computational device
+
+# The DLL that contains the WaterPIDDevice and ViewModel classes
+assembly_name: "WaterPIDRemastered.dll"
+
+# Settings for the PID controller
+settings:
+  - key: "P"
+    display_name: "Proportional Gain (Kp)"
+    type: "number"
+    default_value: 0.1
+    description: "The proportional gain constant."
+
+  - key: "I"
+    display_name: "Integral Gain (Ki)"
+    type: "number"
+    default_value: 0.01
+    description: "The integral gain constant."
+
+  - key: "D"
+    display_name: "Derivative Gain (Kd)"
+    type: "number"
+    default_value: 0.0
+    description: "The derivative gain constant."
+
+  - key: "MinOutput"
+    display_name: "Minimum Output"
+    type: "number"
+    default_value: 0.0
+    description: "The minimum allowed output value (e.g. Valve Voltage)."
+
+  - key: "MaxOutput"
+    display_name: "Maximum Output"
+    type: "number"
+    default_value: 5.0
+    description: "The maximum allowed output value (e.g. Valve Voltage)."
+
+  - key: "PastSignalsToAvg"
+    display_name: "Signal Averaging Count"
+    type: "number"
+    default_value: 4
+    description: "Number of past output signals to average."
+
+  - key: "PastMeasurementsToAvg"
+    display_name: "Measurement Averaging Count"
+    type: "number"
+    default_value: 10
+    description: "Number of past measurements to average."
