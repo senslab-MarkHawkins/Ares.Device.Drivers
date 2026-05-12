@@ -1,0 +1,33 @@
+.pt-container {
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.pt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pt-title {
+    font-weight: 600;
+}
+
+.pt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.field-label {
+    color: #888;
+    font-size: 0.85em;
+}
+
+.field-value {
+    text-align: right;
+    font-weight: 600;
+}
