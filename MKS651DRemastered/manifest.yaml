@@ -1,0 +1,31 @@
+# ARES Device Driver Manifest
+# Target: MKS651D Pressure Controller Remastered
+
+# Basic Metadata
+device_type_name: "MKS651D Pressure Controller"
+driver_id: "mks651d_remastered_v1"
+connection_type: "Serial"
+
+# The DLL that contains the MKS651D and ViewModel classes
+assembly_name: "MKS651DRemastered.dll"
+
+# Serial connection specifics (Parsed only if connection_type is "Serial")
+serial_settings:
+  requires_unit_id: false
+  variable_baud_rate: false
+  allowed_baud_rates: [9600, 19200, 38400, 57600, 115200]
+  default_baud_rate: 9600 # Legacy default
+
+# Settings required when adding the device through the ARES UI
+settings:
+  - key: "MinPressureRange"
+    display_name: "Minimum Sensor Range"
+    type: "number"
+    default_value: 0.1
+    description: "The minimum pressure the sensor can read (Torr)."
+
+  - key: "MaxPressureRange"
+    display_name: "Maximum Sensor Range"
+    type: "number"
+    default_value: 1000
+    description: "The maximum pressure the sensor can read (Torr)."
