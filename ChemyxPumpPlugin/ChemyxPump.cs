@@ -8,7 +8,7 @@ using ChemyxPumpPlugin.Commands;
 using ChemyxPumpPlugin.Enums;
 using ChemyxPumpPlugin.Responses;
 using ChemyxPumpPlugin.Simulation;
-using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using System.IO.Ports;
 using System.Reactive.Linq;
@@ -23,8 +23,9 @@ public class ChemyxPump : AresDevice, IChemyxPump
   private Task _pollingTask = Task.CompletedTask;
   private CancellationTokenSource _pollingCancellation = new();
   private ViewParametersResponse? _cachedParameters;
+  private ILogger _logger;
 
-  public ChemyxPump(DeviceConnectionInfo connectionInfo) : base(connectionInfo)
+  public ChemyxPump(DeviceConnectionInfo connectionInfo, ILogger logger) : base(connectionInfo)
   {
     var serialInfo = connectionInfo.SerialConnectionInfo;
     _connection = connectionInfo.Simulated 
@@ -32,6 +33,7 @@ public class ChemyxPump : AresDevice, IChemyxPump
       : new AresHardwareConnection(new SerialPortConnectionInfo(9600, Parity.None, 8, StopBits.One), serialInfo.PortName);
 
     DualPump = connectionInfo.DeviceSettings.Fields.GetValueOrDefault("DualPump")?.BoolValue ?? false;
+    _logger = logger;
   }
 
   public override async Task<bool> Activate(CancellationToken ct)
