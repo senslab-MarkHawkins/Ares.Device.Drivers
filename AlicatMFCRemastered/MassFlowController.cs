@@ -915,14 +915,26 @@ public class MassFlowController : AresDevice, IMassFlowController
           break;
 
         case MassFlowControllerCommand.ChooseDifferentGas:
-          if(GetArg(MassFlowControllerCommandParameter.GasNumber) is not { HasNumberValue: true, NumberValue: var gasNum })
+          var arg = arguments.FirstOrDefault(a => a.ArgName == MassFlowControllerCommandParameter.GasNumber.ToString());
+          if(arg is null)
+            return ArgumentError("ChooseDifferentGas", "GasNumber", "number");
+
+          var found = arg.ArgValue.TryGetNumericValue(out var gasNum);
+
+          if(!found)
             return ArgumentError("ChooseDifferentGas", "GasNumber", "number");
 
           await ChooseDifferentGas((int)gasNum);
           break;
 
         case MassFlowControllerCommand.DeleteComposerMix:
-          if(GetArg(MassFlowControllerCommandParameter.MixNumber) is not { HasNumberValue: true, NumberValue: var mixNum })
+          var mixNumArg = arguments.FirstOrDefault(a => a.ArgName == MassFlowControllerCommandParameter.MixNumber.ToString());
+          if(mixNumArg is null)
+            return ArgumentError("DeleteComposerMix", "MixNumber", "number");
+          
+          var mixNumFound = mixNumArg.ArgValue.TryGetNumericValue(out var mixNum);
+
+          if(!mixNumFound)
             return ArgumentError("DeleteComposerMix", "MixNumber", "number");
 
           await DeleteComposerMix((int)mixNum);
@@ -941,7 +953,14 @@ public class MassFlowController : AresDevice, IMassFlowController
           throw new NotImplementedException("NewComposerMix is not yet implemented.");
 
         case MassFlowControllerCommand.NewSetpoint:
-          if(GetArg(MassFlowControllerCommandParameter.Setpoint) is not { HasNumberValue: true, NumberValue: var setpoint })
+          var setpointArg = arguments.FirstOrDefault(a => a.ArgName == MassFlowControllerCommandParameter.Setpoint.ToString());
+
+          if(setpointArg is null)
+            return ArgumentError("NewSetpoint", "Setpoint", "number");
+
+          var setpointFound = setpointArg.ArgValue.TryGetNumericValue(out var setpoint);
+
+          if(!setpointFound)
             return ArgumentError("NewSetpoint", "Setpoint", "number");
 
           await NewSetpoint(StandardVolumeFlow.FromStandardCubicCentimetersPerMinute(setpoint));
