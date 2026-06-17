@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ares.Toolkit.Device" Version="1.4.0" />
+    <PackageReference Include="Ares.Toolkit.Device" Version="1.5.0" />
     <PackageReference Include="Ares.Toolkit.Serial" Version="1.0.0" />
     <PackageReference Include="ReactiveUI.Blazor" Version="23.2.28" />
     <PackageReference Include="ReactiveUI.SourceGenerators" Version="3.0.0">
