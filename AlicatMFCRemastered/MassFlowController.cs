@@ -57,12 +57,13 @@ public class MassFlowController : AresDevice, IMassFlowController
     }
 
     else
-      _serialConnection = new MassFlowControllerConnection(serialInfo.PortName);
+      _serialConnection = MassFlowControllerConnection.GetMassFlowControllerConnection(serialInfo.PortName);
 
-    _stateWatchers = new CompositeDisposable
-    {
-      _serialConnection.GetTransactionStream<LiveDataResponse>().Select(transaction => transaction.Response).Subscribe(UpdateLiveData)
-    };
+    /// replaced with transactional update. Could restore if we add an id check to verify correct MFC, but given potential 26 MFCs on a single connection, most traffic on bus could be ignored 
+    //_stateWatchers = new CompositeDisposable
+    //{
+    //  _serialConnection.GetTransactionStream<LiveDataResponse>().Select(transaction => transaction.Response).Subscribe(UpdateLiveData)
+    //};
 
     _expectedDataFormatEntryCount = _mfcType == MfcTypeEnum.Normal ? 12 : 7;
     
@@ -655,7 +656,9 @@ public class MassFlowController : AresDevice, IMassFlowController
           try
           {
             var liveData = await GetLiveData();
-          }
+                /// explicit call required here if statewatchers is not used to subscribe to the live data stream, otherwise the state will not update
+                UpdateLiveData(liveData);
+                }
           catch(TimeoutException)
           {
             Status = new DeviceOperationalStatus { OperationalState = OperationalState.Active, Message = $"Get Live Data timed out at {DateTime.Now}" };
@@ -728,6 +731,9 @@ public class MassFlowController : AresDevice, IMassFlowController
   private void UpdateLiveData(LiveDataResponse liveResponse)
   {
     _liveData = liveResponse;
+    /// check on id is required if _statewatcher is used in order to avoid updating the state with a response from a different MFC than the one that is being watched
+    /// if (liveResponse.Id != this.AssumedId) return;
+
     var next = AresStateBuilder
       .From(_stateSubject.Value)
       .AddStruct("LiveData", b =>
