@@ -6,6 +6,7 @@ namespace AlicatMFCRemastered;
 
 public class MassFlowControllerConnection : AresHardwareConnection, IMfcConnection
 {
+    //simple registry to manage instances of seriaport resources across multiple mfcs
     static Dictionary<string, MassFlowControllerConnection> _connections = new Dictionary<string, MassFlowControllerConnection>();
     public static MassFlowControllerConnection GetMassFlowControllerConnection(string portName)
     {
@@ -14,6 +15,7 @@ public class MassFlowControllerConnection : AresHardwareConnection, IMfcConnecti
 
         return _connections[portName];
     }
+
 
     private readonly List<char> _unusedIds;
 
