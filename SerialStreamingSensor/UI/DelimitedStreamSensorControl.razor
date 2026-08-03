@@ -10,41 +10,43 @@
 }
 else
 {
-    <div class="streaming-sensor-header">
-        <div class="streaming-sensor-title">
-            @GetDisplayName()
+    <div class="device-container m-0 p-0">
+        <div class="title-row">
+            <div class="device-name">
+                @GetDisplayName()
+            </div>
+
+            <div class="@GetStatusClass()">
+                @GetStatusText()
+            </div>
         </div>
 
-        <div class="@GetStatusClass()">
-            @GetStatusText()
-        </div>
+        @if (ViewModel.SensorState.LiveData.Count == 0)
+        {
+            <div class="streaming-sensor-message">
+                No live-data fields are defined.
+            </div>
+        }
+        else
+        {
+            <table class="parameter-table">
+                <tbody>
+                    @foreach (var entry in ViewModel.SensorState.LiveData)
+                    {
+                        <tr @key="entry.Name">
+                            <td class="parameter-name">
+                                @FormatName(entry.Name)
+                            </td>
+
+                            <td class="@GetValueClass(entry)">
+                                @FormatValue(entry.Value)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
     </div>
-
-    @if (ViewModel.SensorState.LiveData.Count == 0)
-    {
-        <div class="streaming-sensor-message">
-            No live-data fields are defined.
-        </div>
-    }
-    else
-    {
-        <div class="streaming-sensor-live-data">
-            @foreach (var entry in ViewModel.SensorState.LiveData)
-            {
-                <div class="streaming-sensor-value-row"
-                     @key="entry.Name">
-
-                    <span class="streaming-sensor-label">
-                        @FormatName(entry.Name)
-                    </span>
-
-                    <span class="@GetValueClass(entry)">
-                        @FormatValue(entry.Value)
-                    </span>
-                </div>
-            }
-        </div>
-    }
 }
 
 @code {
@@ -88,27 +90,31 @@ else
     private string GetStatusText()
     {
         if (ViewModel?.CapturingLiveData == true)
-            return "Live";
+            return "LIVE";
 
         if (ViewModel?.HasValidData == true)
-            return "Connected";
+            return "CONNECTED";
 
-        return "Waiting for data";
+        return "INITIALIZING";
     }
 
     private string GetStatusClass()
     {
-        return ViewModel?.CapturingLiveData == true
-            ? "streaming-sensor-status active"
-            : "streaming-sensor-status waiting";
+        if (ViewModel?.CapturingLiveData == true)
+            return "device-state connected";
+
+        if (ViewModel?.HasValidData == true)
+            return "device-state connected";
+
+        return "device-state initializing";
     }
 
     private static string GetValueClass(
         DelimitedStreamSensorLiveDataEntry entry)
     {
         return entry.Value.HasValue
-            ? "streaming-sensor-value"
-            : "streaming-sensor-value unavailable";
+            ? "parameter-value"
+            : "parameter-value unavailable";
     }
 
     private static string FormatValue(double? value)

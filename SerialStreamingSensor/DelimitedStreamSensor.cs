@@ -4,9 +4,12 @@ using Ares.Datamodel.Extensions;
 using Ares.Datamodel.Factories;
 using Ares.Device;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
+using SerialStreamingSensor.Connection;
 using SerialStreamingSensor.Models;
 using StreamHelper;
 using System.Linq.Expressions;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
@@ -20,6 +23,10 @@ namespace SerialStreamingSensor
         private readonly string[] _fields;
         private readonly StreamingField[] _streamingFields;
         private readonly IReadOnlyDictionary<string, StreamingField> _streamingFieldsByName;
+        private readonly System.IO.Ports.SerialPort _serialConnection;
+        private CancellationTokenSource _stateGetterLoopTokenSource = new();
+        //private CompositeDisposable _stateWatchers = new();
+        private Task _stateUpdater = Task.CompletedTask;
 
         private readonly BehaviorSubject<AresStruct> _stateSubject = new(new AresStruct());
 
@@ -32,6 +39,19 @@ namespace SerialStreamingSensor
             StateStream = _stateSubject.AsObservable();
 
             _logger.LogInformation($"Parsing data format '{_dataFormat}'");
+            _serialConnection = new System.IO.Ports.SerialPort()
+            {
+                PortName = info.SerialConnectionInfo.PortName,
+                BaudRate = 115200,
+                Parity = System.IO.Ports.Parity.None,
+                StopBits = System.IO.Ports.StopBits.One,
+                DataBits = 8,
+                DtrEnable = true,
+                RtsEnable = true,
+                ReadTimeout=1000,
+            };
+
+
 
             _fields = _dataFormat.Split(":,\t".ToCharArray(), StringSplitOptions.None).Select(field => field.Trim()).ToArray();
 
@@ -68,6 +88,46 @@ namespace SerialStreamingSensor
                     })
                     .Build())
                 .Build();
+
+            //_stateWatchers = new CompositeDisposable
+            //    {
+            //      _serialConnection.GetTransactionStream<ReadLineResponse>().Select(transaction => transaction.Response).Subscribe(UpdateLiveData)
+            //    };
+
+            _logger.LogInformation($" Streaming device {Name} initialization completed");
+        }
+
+        private void UpdateLiveData(string response)
+        {
+            // TODO: move parsing into parser class (deliver key-value pairs instead of raw line)
+            //_logger.LogInformation($"Received line: {response}");
+            var fields = response.Split(":,\t".ToCharArray(), StringSplitOptions.None).Select(field => field.Trim()).ToArray();
+            foreach (var field in _streamingFields)
+            {
+                double value;
+                if (double.TryParse(fields[field.DataIndex], out value))
+                {
+                    field.Value = value;
+                    if (field.StatsActive) field.Stats.AddValue(value);    
+                }
+                else
+                {
+                    field.Value = null;
+                }
+            }
+
+            var next = AresStateBuilder
+                  .From(_stateSubject.Value)
+                  .AddStruct("LiveData", b =>
+                  {
+                      foreach (var field in _streamingFields)
+                      {
+                          b.Add(field.Name, field.Value ?? 0.0);
+                      }
+                  })
+                  .Build();
+
+            _stateSubject.OnNext(next);
         }
 
         private AresStruct BuildInitialState()
@@ -89,15 +149,97 @@ namespace SerialStreamingSensor
                 .Build();
         }
 
-
         public override IObservable<AresStruct> StateStream { get; }
 
 
-        public override Task<bool> Activate(CancellationToken ct)
+        public async override Task<bool> Activate(CancellationToken ct)
         {
+            bool activated = false;
+            _logger.LogInformation($"Activating streaming device {Name}...");
+            try
+            {
+                await Initialize();
+                activated = true;
+                Status = new DeviceOperationalStatus { OperationalState = OperationalState.Active, Message = $"Streaming device {Name} is active!" };
+                _logger.LogInformation($"Device {Name} activated");
+            }
+            catch (Exception e)
+            {
+                Status = new DeviceOperationalStatus { OperationalState = OperationalState.Error, Message = $"Failed to initialize: {e.Message}" };
+                _logger.LogError(e, $"Device {Name} activation failed");
+            }
+
+            return activated;
+        }
+
+        private async Task Initialize()
+        {
+            if (_serialConnection is null)
+            {
+                _logger.LogError($"Serial device {Name}: Initialize was called, but connection was not set!");
+                return;
+            }
+
+            await StopUpdateLoop();
+
             _stateSubject.OnNext(BuildInitialState());
 
-            return Task.FromResult(true);
+            _ = Start();
+
+        }
+
+        public async Task Start()
+        {
+            await StopUpdateLoop();
+            await StartUpdateLoop(TimeSpan.FromMilliseconds(500));
+        }
+
+        public async Task StartUpdateLoop(TimeSpan interval)
+        {
+            await StopUpdateLoop();
+            await Task.Delay(150);
+            _stateGetterLoopTokenSource = new CancellationTokenSource();
+            _stateUpdater = Task.Factory.StartNew(async _ =>
+            {
+                Thread.CurrentThread.Name = $"Serial Device {Name} State Update Loop Thread";
+                try
+                {
+                    while (!_stateGetterLoopTokenSource.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            if (!_serialConnection.IsOpen) _serialConnection.Open();
+                            //_logger.LogInformation($"Requesting live data at {DateTime.Now}");
+                            var liveData = _serialConnection.ReadLine();
+                            UpdateLiveData(liveData);
+                        }
+                        catch (TimeoutException)
+                        {
+                            _logger.LogError($"Get Live Data timed out at {DateTime.Now}");
+                            Status = new DeviceOperationalStatus { OperationalState = OperationalState.Active, Message = $"Get Live Data timed out at {DateTime.Now}" };
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogError(e, $"Get Live Data failed at {DateTime.Now}");
+                            await Task.Delay(150);
+                        }
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+                catch (Exception e)
+                {
+                    Status = new DeviceOperationalStatus { OperationalState = OperationalState.Error, Message = $"{e.Message}" };
+                }
+            },
+              _stateGetterLoopTokenSource.Token);
+        }
+
+        private async Task StopUpdateLoop()
+        {
+            _stateGetterLoopTokenSource?.Cancel();
+            await _stateUpdater;
         }
 
         public Task BeginCollectingStats(string fieldName)
@@ -111,9 +253,9 @@ namespace SerialStreamingSensor
         public async ValueTask DisposeAsync()
         {
             //_stateWatchers.Dispose();
-            //await _stateGetterLoopTokenSource.CancelAsync();
-            //await _stateUpdater;
-            //_stateGetterLoopTokenSource.Dispose();
+            await _stateGetterLoopTokenSource.CancelAsync();
+            await _stateUpdater;
+            _stateGetterLoopTokenSource.Dispose();
             _stateSubject.OnCompleted();
         }
 
