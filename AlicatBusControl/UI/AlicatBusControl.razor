@@ -1,0 +1,223 @@
+﻿
+
+@using Radzen
+@using Radzen.Blazor
+@using global::AlicatBusControl.UI.State
+
+@inherits ReactiveUI.Blazor.ReactiveComponentBase<AlicatBusControlViewModel>
+
+<div class="alicat-bus-control">
+    <div class="alicat-bus-header">
+        <div class="alicat-bus-name">
+            @ViewModel.State.Name
+        </div>
+
+        <div class="alicat-bus-status @GetStatusClass()">
+            @FormatStatus(ViewModel.State.FlowVerificationState)
+        </div>
+    </div>
+
+    <table class="table table-sm alicat-bus-table">
+        <thead>
+            <tr>
+                <th>Property</th>
+                <th>Applied</th>
+                <th>Target</th>
+                <th>New value</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+@foreach (var property in ViewModel.State.Properties)
+            {
+                <tr @key="property.Name">
+                    <td class="alicat-property-name">
+                        @FormatPropertyName(property.Name)
+                    </td>
+
+                    <td>
+                        @FormatValue(property)
+                    </td>
+
+                    <td>
+                        @FormatTargetValue(property)
+                    </td>
+
+                    <td>
+                        <RadzenNumeric TValue="double?"
+                        @bind-Value="@property.InputValue"
+                        Placeholder="@property.TargetValue.ToString()"
+                        ShowUpDown="false"
+                        Style="width: 100%;" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="alicat-bus-footer">
+        <RadzenButton Text="Update Settings"
+                      Click="@UpdateSettingsAsync"
+                      ButtonStyle="ButtonStyle.Secondary" />
+        @if (ViewModel.State.ChangesPending)
+        {
+            <span class="alicat-pending">
+                Changes pending
+            </span>
+        }
+        else
+        {
+            <span></span>
+        }
+
+        <RadzenButton Text="Apply"
+                      Click="@ApplyFlowAsync"
+                      ButtonStyle="ButtonStyle.Secondary" />
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="alert alert-danger mt-2 mb-0">
+            @_errorMessage
+        </div>
+    }
+</div>
+
+@code {
+    private bool _commandInProgress;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        ViewModel.StateChanged += OnViewModelStateChanged;
+    }
+
+    private void OnViewModelStateChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ApplyFlowAsync()
+    {
+        _commandInProgress = true;
+        _errorMessage = null;
+
+        try
+        {
+            var success =
+                await ViewModel.ApplyFlowAsync();
+
+            if (!success)
+            {
+                _errorMessage =
+                    "The requested flow could not be applied.";
+            }
+        }
+        catch (Exception exception)
+        {
+            _errorMessage = exception.Message;
+        }
+        finally
+        {
+            _commandInProgress = false;
+        }
+    }
+
+    private static string FormatPropertyName(
+        string propertyName)
+    {
+        return string.Equals(
+                propertyName,
+                "TotalFlow",
+                StringComparison.OrdinalIgnoreCase)
+            ? "Total Flow"
+            : propertyName;
+    }
+
+    private static string FormatValue(
+        AlicatBusPropertyState property)
+    {
+        return IsTotalFlow(property.Name)
+            ? $"{property.AppliedValue:G6} SCCM"
+            : $"{property.AppliedValue:P3}";
+    }
+
+    private static string FormatTargetValue(
+        AlicatBusPropertyState property)
+    {
+        return IsTotalFlow(property.Name)
+            ? $"{property.TargetValue:G6} SCCM"
+            : $"{property.TargetValue:P3}";
+    }
+
+    private static bool IsTotalFlow(
+        string propertyName)
+    {
+        return string.Equals(
+            propertyName,
+            "TotalFlow",
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string GetStatusClass()
+    {
+        return ViewModel.State.FlowVerificationState switch
+        {
+            "FlowsConfirmed" => "status-confirmed",
+            "Settling" => "status-settling",
+            "MissingHardware" => "status-error",
+            "OutOfSync" => "status-error",
+            "FlowError" => "status-error",
+            _ => "status-unknown"
+        };
+    }
+
+    private static string FormatStatus(
+        string status)
+    {
+        return status switch
+        {
+            "FlowsConfirmed" => "Flows Confirmed",
+            "MissingHardware" => "Missing Hardware",
+            "OutOfSync" => "Out of Sync",
+            "FlowError" => "Flow Error",
+            "Settling" => "Settling",
+            _ => "Unknown"
+        };
+    }
+
+    public void Dispose()
+    {
+        ViewModel.StateChanged -=
+            OnViewModelStateChanged;
+    }
+
+    private async Task UpdateSettingsAsync()
+    {
+        _commandInProgress = true;
+        _errorMessage = null;
+
+        try
+        {
+            var success =
+                await ViewModel.UpdateSettingsAsync();
+
+            if (!success)
+            {
+                _errorMessage =
+                    "The requested flow could not be applied.";
+            }
+        }
+        catch (Exception exception)
+        {
+            _errorMessage = exception.Message;
+        }
+        finally
+        {
+            _commandInProgress = false;
+        }
+    }
+}

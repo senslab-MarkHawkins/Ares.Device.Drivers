@@ -3,7 +3,7 @@
 
 # Basic Metadata
 device_type_name: "Alicat Mass Flow Controller"
-driver_id: "alicat_mfc_remastered_v1"
+driver_id: "alicat_mfc_remastered_v2"
 connection_type: "Serial"
 
 # The DLL that contains the MassFlowController and ViewModel classes
