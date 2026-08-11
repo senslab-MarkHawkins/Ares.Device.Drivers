@@ -467,7 +467,6 @@ public class MassFlowController : AresDevice, IMassFlowController
     if(_mfcType == MfcTypeEnum.Normal)
     {          
       var newSetpointCommand = new NewSetpointCommand(AssumedId, setpoint, GetFormatEntries(), FirmwareVersion);
-            _logger.LogInformation($"DEBUG_UNITCONVERSION: Calculating ratio of {newSetpointCommand.SetPoint.Value} {newSetpointCommand.SetPoint.Unit} to {newSetpointCommand.MaxSetPoint.Value} {newSetpointCommand.MaxSetPoint.Unit} = { newSetpointCommand.SetPoint / newSetpointCommand.MaxSetPoint }");
             try
       {
         var response = await Send(newSetpointCommand, TimeSpan.FromSeconds(10));
