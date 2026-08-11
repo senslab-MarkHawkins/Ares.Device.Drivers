@@ -1,0 +1,47 @@
+# ARES Device Driver Manifest
+# Target: Alicat MFC Remastered
+
+# Basic Metadata
+device_type_name: "Flow Solver"
+driver_id: "flow_solver_v1"
+connection_type: "Virtual"
+
+# The DLL that contains the MassFlowController and ViewModel classes
+assembly_name: "FlowSolver.dll"
+
+# Settings required when adding the device through the ARES UI
+settings:
+  - key: "FlowComponents"
+    display_name: "Flow Components"
+    type: "List"
+    description: "List of flow components and compositionsto control"
+    item_schema:
+      type: "struct"
+      fields:
+        - key: "MFC"
+          display_name: "Mass Flow Controller"
+          type: "string"
+          description: "The MFC to control"
+
+        - key: "Components"
+          display_name: "Gas Components"
+          type: "List"
+          description: "List of gas components and their molar fractions"
+          item_schema:
+            type: "struct"
+            fields:
+              - key: "Component"
+                display_name: "Gas component"
+                type: "string"
+                description: "The name of the gas component"
+
+              - key: "Value"
+                display_name: "Concentration"
+                type: "number"
+                description: "concentration of gas, blank if 'balance'"
+
+              - key: "Unit"
+                display_name: "Concentration unit"
+                type: "string"
+                description: "Unit of composition or 'Balance'"
+

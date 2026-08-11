@@ -1,0 +1,213 @@
+﻿@using Radzen
+@using Radzen.Blazor
+
+@inherits ReactiveUI.Blazor.ReactiveComponentBase<FlowSolverViewModel>
+
+<div class="flow-solver-banner">
+    <span class="tin-screw tin-screw-tl"></span>
+    <span class="tin-screw tin-screw-tr"></span>
+    <span class="tin-screw tin-screw-bl"></span>
+    <span class="tin-screw tin-screw-br"></span>
+
+    <div class="flow-solver-kicker">
+        PREMIUM GAS MIXTURES
+    </div>
+
+    <div class="flow-solver-title">
+        Fancy-Ass Flow Solver
+    </div>
+
+    <div class="flow-solver-subtitle">
+        Precision Blends • Computational Refreshments
+    </div>
+</div>
+
+<style>
+.flow-solver-banner {
+    position: relative;
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 2rem 2.5rem;
+
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            to bottom,
+            #ef8997 0%,
+            #ef8997 47%,
+            #f5edcf 47%,
+            #f5edcf 100%
+        );
+
+    border: 7px solid #4d2d27;
+
+    box-shadow:
+        inset 0 0 0 3px #f6e7c2,
+        inset 0 0 0 7px #d46d6f,
+        inset 0 0 22px rgba(52, 30, 21, .35),
+        0 5px 14px rgba(0, 0, 0, .35);
+
+    color: #173e55;
+}
+
+/* inner painted frame */
+.flow-solver-banner::before {
+    content: "";
+
+    position: absolute;
+    inset: 13px;
+
+    border: 3px solid rgba(255, 248, 221, .9);
+    border-radius: 12px;
+
+    box-shadow:
+        inset 0 0 0 2px rgba(30, 93, 99, .45);
+
+    pointer-events: none;
+}
+
+/* faux aging / patina */
+.flow-solver-banner::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background:
+        radial-gradient(
+            circle at 8% 12%,
+            rgba(55, 30, 20, .20),
+            transparent 10%
+        ),
+        radial-gradient(
+            circle at 88% 84%,
+            rgba(55, 30, 20, .17),
+            transparent 12%
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,.08),
+            transparent 20%,
+            transparent 80%,
+            rgba(0,0,0,.08)
+        );
+
+    pointer-events: none;
+}
+
+.flow-solver-kicker {
+    position: relative;
+    z-index: 1;
+
+    color: #f7f0d5;
+
+    font-family:
+        "Arial Narrow",
+        "Franklin Gothic Medium",
+        sans-serif;
+
+    font-size: .8rem;
+    font-weight: 800;
+
+    letter-spacing: .28rem;
+    text-transform: uppercase;
+
+    margin-bottom: .35rem;
+
+    text-shadow:
+        1px 1px 0 #153d52;
+}
+
+.flow-solver-title {
+    position: relative;
+    z-index: 1;
+
+    max-width: 100%;
+
+    white-space: normal;
+    overflow-wrap: break-word;
+
+    font-family:
+        "Cooper Black",
+        "Rockwell Extra Bold",
+        Georgia,
+        serif;
+
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: .95;
+
+    font-weight: 900;
+
+    color: #173e55;
+
+    -webkit-text-stroke: 2px #f9f1d8;
+
+    text-shadow:
+        3px 3px 0 #cf4e59,
+        5px 5px 0 rgba(47, 32, 27, .25);
+
+    transform: rotate(-1deg);
+}
+
+.flow-solver-subtitle {
+    position: relative;
+    z-index: 1;
+
+    margin-top: .7rem;
+
+    max-width: 90%;
+
+    white-space: normal;
+    overflow-wrap: break-word;
+
+    color: #1d7778;
+
+    font-family:
+        "Trebuchet MS",
+        sans-serif;
+
+    font-size: .95rem;
+    font-weight: 800;
+
+    letter-spacing: .08rem;
+    text-transform: uppercase;
+}
+
+.tin-screw {
+    position: absolute;
+
+    width: 18px;
+    height: 18px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #f6f0d4 0%,
+            #c8bda0 20%,
+            #40342d 45%,
+            #0d0d0d 72%
+        );
+
+    box-shadow:
+        0 2px 4px rgba(0,0,0,.6),
+        inset 0 0 2px white;
+
+    z-index: 2;
+}
+
+.tin-screw-tl { top: 15px; left: 15px; }
+.tin-screw-tr { top: 15px; right: 15px; }
+.tin-screw-bl { bottom: 15px; left: 15px; }
+.tin-screw-br { bottom: 15px; right: 15px; }
+
+</style>
