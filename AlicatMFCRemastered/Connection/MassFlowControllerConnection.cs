@@ -22,6 +22,8 @@ public class MassFlowControllerConnection : AresHardwareConnection, IMfcConnecti
     AttemptOpen();
   }
 
+// Device Ids are required to be unique on a given bus. But Alicats on diferent buses could have the same ids
+// Current pattern is overly restrictive, consider revision
   public IEnumerable<char> UnusedIds { get; }
 
   public bool ReserveId(char id)
